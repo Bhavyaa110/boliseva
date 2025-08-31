@@ -1,0 +1,17 @@
+{
+  "name": "BoliSeva - Voice-First Loan Assistant",
+  "short_name": "BoliSeva",
+  "description": "India's Voice-First Loan Lifecycle Assistant",
+  "theme_color": "#1E40AF",
+  "background_color": "#F8FAFC",
+  "display": "standalone",
+  "scope": "/",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
