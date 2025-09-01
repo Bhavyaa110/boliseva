@@ -5,7 +5,7 @@ import { SignupForm } from './components/SignupForm';
 import { OTPVerification } from './components/OTPVerification';
 import { DocumentVerification } from './components/DocumentVerification';
 import { Dashboard } from './components/Dashboard';
-import { LoanForm } from './components/LoanForm';
+import LoanForm from './components/LoanForm';
 import { VoiceChat } from './components/VoiceChat';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { useAuth } from './hooks/useAuth';
