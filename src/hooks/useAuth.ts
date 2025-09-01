@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { User } from '../types';
 import { LocalStorage } from '../utils/storage';
+import { AuthService } from '../services/authService';
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -12,48 +13,31 @@ export const useAuth = () => {
     setIsLoading(false);
   }, []);
 
-  const login = async (identifier: string, type: 'phone' | 'aadhaar' | 'account'): Promise<{ success: boolean; requiresOtp?: boolean }> => {
+  const sendOTP = async (phoneNo: string): Promise<{ success: boolean; error?: string }> => {
     setIsLoading(true);
-    
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Mock login logic
-    if (identifier.length < 6) {
-      setIsLoading(false);
-      return { success: false };
-    }
-
+    const result = await AuthService.sendOTP(phoneNo);
     setIsLoading(false);
-    return { success: true, requiresOtp: true };
+    return result;
   };
 
-  const verifyOtp = async (otp: string, userData: any): Promise<boolean> => {
+  const signup = async (userData: any): Promise<{ success: boolean; error?: string }> => {
     setIsLoading(true);
+    const result = await AuthService.signup(userData);
+    setIsLoading(false);
+    return result;
+  };
+
+  const verifyOtp = async (phoneNo: string, otp: string): Promise<{ success: boolean; error?: string }> => {
+    setIsLoading(true);
+    const result = await AuthService.verifyOTP(phoneNo, otp);
     
-    // Simulate OTP verification
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    if (otp === '123456') {
-      const newUser: User = {
-        id: Math.random().toString(36).substr(2, 9),
-        name: userData.name || 'User',
-        phone: userData.phone,
-        aadhaar: userData.aadhaar,
-        accountNumber: userData.accountNumber,
-        preferredLanguage: userData.preferredLanguage || 'en',
-        isVerified: true,
-        createdAt: new Date(),
-      };
-      
-      setUser(newUser);
-      LocalStorage.set('boliseva_user', newUser);
-      setIsLoading(false);
-      return true;
+    if (result.success && result.user) {
+      setUser(result.user);
+      LocalStorage.set('boliseva_user', result.user);
     }
     
     setIsLoading(false);
-    return false;
+    return { success: result.success, error: result.error };
   };
 
   const logout = () => {
@@ -72,7 +56,8 @@ export const useAuth = () => {
   return {
     user,
     isLoading,
-    login,
+    sendOTP,
+    signup,
     verifyOtp,
     logout,
     updateLanguage,

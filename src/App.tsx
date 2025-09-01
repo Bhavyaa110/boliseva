@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { LanguageSelector } from './components/LanguageSelector';
 import { AuthForm } from './components/AuthForm';
+import { SignupForm } from './components/SignupForm';
 import { OTPVerification } from './components/OTPVerification';
+import { DocumentVerification } from './components/DocumentVerification';
 import { Dashboard } from './components/Dashboard';
 import { LoanForm } from './components/LoanForm';
 import { VoiceChat } from './components/VoiceChat';
@@ -9,12 +11,13 @@ import { OfflineIndicator } from './components/OfflineIndicator';
 import { useAuth } from './hooks/useAuth';
 import { useVoice } from './hooks/useVoice';
 import { LocalStorage } from './utils/storage';
-import { LoanApplication } from './types';
 
 type AppState = 
   | 'language-selection'
   | 'auth'
+  | 'signup'
   | 'otp-verification'
+  | 'document-verification'
   | 'dashboard'
   | 'loan-form'
   | 'voice-chat';
@@ -22,8 +25,8 @@ type AppState =
 function App() {
   const [appState, setAppState] = useState<AppState>('language-selection');
   const [language, setLanguage] = useState('en');
-  const [otpData, setOtpData] = useState<any>(null);
-  const { user, isLoading: authLoading, login, verifyOtp, logout, updateLanguage } = useAuth();
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const { user, isLoading: authLoading, sendOTP, verifyOtp, logout, updateLanguage } = useAuth();
   const { speak } = useVoice(language);
 
   useEffect(() => {
@@ -50,39 +53,51 @@ function App() {
     setAppState(user ? 'dashboard' : 'auth');
   };
 
-  const handleLogin = async (identifier: string, type: 'phone' | 'aadhaar' | 'account') => {
-    const result = await login(identifier, type);
+  const handleLanguageChange = (newLanguage: string) => {
+    setLanguage(newLanguage);
+    updateLanguage(newLanguage);
+    LocalStorage.set('boliseva_language', newLanguage);
+  };
+
+  const handleLogin = async (phoneNo: string) => {
+    const result = await sendOTP(phoneNo);
     
-    if (result.success && result.requiresOtp) {
-      setOtpData({ identifier, type });
+    if (result.success) {
+      setPhoneNumber(phoneNo);
       setAppState('otp-verification');
+    } else {
+      await speak(result.error || 'Login failed');
     }
+  };
+
+  const handleSignupComplete = async () => {
+    await speak('Account created successfully! Please login with your phone number.');
+    setAppState('auth');
   };
 
   const handleOtpVerification = async (otp: string) => {
-    const userData = {
-      name: 'Demo User',
-      phone: otpData.identifier,
-      aadhaar: otpData.type === 'aadhaar' ? otpData.identifier : undefined,
-      accountNumber: otpData.type === 'account' ? otpData.identifier : undefined,
-      preferredLanguage: language,
-    };
-
-    const success = await verifyOtp(otp, userData);
+    const result = await verifyOtp(phoneNumber, otp);
     
-    if (success) {
+    if (result.success) {
       await speak(language === 'hi' ? 'सफलतापूर्वक लॉगिन हो गए' : 'Successfully logged in');
       setAppState('dashboard');
+    } else {
+      await speak(result.error || 'OTP verification failed');
     }
   };
 
-  const handleLoanComplete = async (loan: LoanApplication) => {
+  const handleDocumentVerificationComplete = () => {
+    setAppState('loan-form');
+  };
+
+  const handleLoanComplete = async () => {
     await speak(language === 'hi' ? 'आपका ऋण आवेदन सफलतापूर्वक जमा हो गया' : 'Your loan application has been submitted successfully');
     setAppState('dashboard');
   };
 
   const handleLogout = () => {
     logout();
+    setPhoneNumber('');
     setAppState('auth');
   };
 
@@ -113,17 +128,34 @@ function App() {
         <AuthForm
           language={language}
           onLogin={handleLogin}
+          onSignup={() => setAppState('signup')}
           isLoading={authLoading}
         />
       )}
 
-      {appState === 'otp-verification' && otpData && (
+      {appState === 'signup' && (
+        <SignupForm
+          language={language}
+          onBack={() => setAppState('auth')}
+          onSignupComplete={handleSignupComplete}
+        />
+      )}
+
+      {appState === 'otp-verification' && phoneNumber && (
         <OTPVerification
           language={language}
-          phoneNumber={otpData.identifier}
+          phoneNumber={phoneNumber}
           onVerify={handleOtpVerification}
           onBack={() => setAppState('auth')}
           isLoading={authLoading}
+        />
+      )}
+
+      {appState === 'document-verification' && (
+        <DocumentVerification
+          language={language}
+          onBack={() => setAppState('dashboard')}
+          onComplete={handleDocumentVerificationComplete}
         />
       )}
 
@@ -131,7 +163,8 @@ function App() {
         <Dashboard
           user={user}
           language={language}
-          onNewLoan={() => setAppState('loan-form')}
+          onLanguageChange={handleLanguageChange}
+          onNewLoan={() => setAppState('document-verification')}
           onOpenChat={() => setAppState('voice-chat')}
           onLogout={handleLogout}
         />
@@ -141,14 +174,17 @@ function App() {
         <LoanForm
           language={language}
           userId={user.id}
+          onLanguageChange={handleLanguageChange}
           onBack={() => setAppState('dashboard')}
           onComplete={handleLoanComplete}
+          onDocumentVerification={() => setAppState('document-verification')}
         />
       )}
 
-      {appState === 'voice-chat' && (
+      {appState === 'voice-chat' && user && (
         <VoiceChat
           language={language}
+          onBack={() => setAppState('dashboard')}
           onLoanRequest={() => setAppState('loan-form')}
         />
       )}

@@ -1,89 +1,126 @@
 import { LoanApplication, EMI } from '../types';
-import { LocalStorage, OfflineQueue } from '../utils/storage';
+import { supabase } from '../lib/supabase';
 import { AIService } from './aiService';
 
 export class LoanService {
-  private static LOANS_KEY = 'boliseva_loans';
-  private static EMIS_KEY = 'boliseva_emis';
+  static async submitApplication(application: {
+    userId: string;
+    type: string;
+    amount: number;
+    purpose: string;
+    income: number;
+    employment: string;
+    documentsVerified: boolean;
+  }): Promise<{ success: boolean; loanId?: string; error?: string }> {
+    try {
+      const { data, error } = await supabase
+        .from('loans')
+        .insert({
+          user_id: application.userId,
+          loan_type: application.type,
+          amount: application.amount,
+          purpose: application.purpose,
+          income: application.income,
+          employment: application.employment,
+          documents_verified: application.documentsVerified,
+          status: 'applied',
+        })
+        .select()
+        .single();
 
-  static async submitApplication(application: Partial<LoanApplication>): Promise<LoanApplication> {
-    const newApplication: LoanApplication = {
-      id: Math.random().toString(36).substr(2, 9),
-      userId: application.userId!,
-      type: application.type!,
-      amount: application.amount!,
-      purpose: application.purpose!,
-      income: application.income!,
-      employment: application.employment!,
-      status: 'submitted',
-      documents: application.documents || [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+      if (error) {
+        return { success: false, error: error.message };
+      }
 
-    // Check for fraud
-    const fraudCheck = AIService.detectFraud(application);
-    if (fraudCheck.risk === 'high') {
-      newApplication.status = 'rejected';
+      return { success: true, loanId: data.loan_id };
+    } catch (error) {
+      return { success: false, error: 'Network error occurred' };
     }
+  }
 
-    // Save to local storage
-    const loans = this.getAllLoans();
-    loans.push(newApplication);
-    LocalStorage.set(this.LOANS_KEY, loans);
+  static async getLoansByUser(userId: string): Promise<LoanApplication[]> {
+    try {
+      const { data, error } = await supabase
+        .from('loans')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
 
-    // Add to offline queue if not online
-    if (!navigator.onLine) {
-      OfflineQueue.addToQueue({
-        type: 'submit_loan',
-        data: newApplication,
-      });
+      if (error) {
+        console.error('Error fetching loans:', error);
+        return [];
+      }
+
+      return data.map(loan => ({
+        id: loan.loan_id,
+        userId: loan.user_id,
+        type: loan.loan_type as LoanApplication['type'],
+        amount: loan.amount,
+        purpose: loan.purpose,
+        income: loan.income,
+        employment: loan.employment,
+        status: loan.status as LoanApplication['status'],
+        documents: [],
+        documentsVerified: loan.documents_verified,
+        createdAt: new Date(loan.created_at),
+        updatedAt: new Date(loan.created_at),
+      }));
+    } catch (error) {
+      console.error('Error fetching loans:', error);
+      return [];
     }
-
-    return newApplication;
   }
 
-  static getAllLoans(): LoanApplication[] {
-    return LocalStorage.get<LoanApplication[]>(this.LOANS_KEY) || [];
-  }
+  static async approveLoan(loanId: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      const { error } = await supabase
+        .from('loans')
+        .update({ status: 'approved' })
+        .eq('loan_id', loanId);
 
-  static getLoansByUser(userId: string): LoanApplication[] {
-    return this.getAllLoans().filter(loan => loan.userId === userId);
-  }
+      if (error) {
+        return { success: false, error: error.message };
+      }
 
-  static async approveLoan(loanId: string): Promise<void> {
-    const loans = this.getAllLoans();
-    const loanIndex = loans.findIndex(loan => loan.id === loanId);
-    
-    if (loanIndex !== -1) {
-      loans[loanIndex].status = 'approved';
-      loans[loanIndex].updatedAt = new Date();
-      LocalStorage.set(this.LOANS_KEY, loans);
-      
       // Generate EMI schedule
-      this.generateEMISchedule(loans[loanIndex]);
+      await this.generateEMISchedule(loanId);
+      
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: 'Network error occurred' };
     }
   }
 
-  private static generateEMISchedule(loan: LoanApplication): void {
-    const emis: EMI[] = [];
-    const monthlyEMI = this.calculateEMI(loan.amount, 12, 12); // 12% interest, 12 months
-    
-    for (let i = 0; i < 12; i++) {
-      const dueDate = new Date();
-      dueDate.setMonth(dueDate.getMonth() + i + 1);
+  private static async generateEMISchedule(loanId: string): Promise<void> {
+    try {
+      // Get loan details
+      const { data: loan } = await supabase
+        .from('loans')
+        .select('amount')
+        .eq('loan_id', loanId)
+        .single();
+
+      if (!loan) return;
+
+      const monthlyEMI = this.calculateEMI(loan.amount, 12, 12); // 12% interest, 12 months
+      const emisToInsert = [];
       
-      emis.push({
-        id: Math.random().toString(36).substr(2, 9),
-        loanId: loan.id,
-        amount: monthlyEMI,
-        dueDate,
-        status: 'pending',
-      });
+      for (let i = 0; i < 12; i++) {
+        const dueDate = new Date();
+        dueDate.setMonth(dueDate.getMonth() + i + 1);
+        
+        emisToInsert.push({
+          loan_id: loanId,
+          amount: monthlyEMI,
+          due_date: dueDate.toISOString().split('T')[0],
+          status: 'unpaid',
+        });
+      }
+      
+      await supabase.from('emis').insert(emisToInsert);
+    } catch (error) {
+      console.error('Error generating EMI schedule:', error);
     }
-    
-    const existingEMIs = LocalStorage.get<EMI[]>(this.EMIS_KEY) || [];
-    LocalStorage.set(this.EMIS_KEY, [...existingEMIs, ...emis]);
   }
 
   static calculateEMI(principal: number, rate: number, tenure: number): number {
@@ -93,26 +130,80 @@ export class LoanService {
     return Math.round(emi);
   }
 
-  static getEMIsByUser(userId: string): EMI[] {
-    const allEMIs = LocalStorage.get<EMI[]>(this.EMIS_KEY) || [];
-    const userLoans = this.getLoansByUser(userId);
-    const userLoanIds = userLoans.map(loan => loan.id);
-    
-    return allEMIs.filter(emi => userLoanIds.includes(emi.loanId));
+  static async getEMIsByUser(userId: string): Promise<EMI[]> {
+    try {
+      const { data, error } = await supabase
+        .from('emis')
+        .select(`
+          *,
+          loans!inner(user_id)
+        `)
+        .eq('loans.user_id', userId)
+        .order('due_date', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching EMIs:', error);
+        return [];
+      }
+
+      return data.map(emi => ({
+        id: emi.emi_id,
+        loanId: emi.loan_id,
+        amount: emi.amount,
+        dueDate: new Date(emi.due_date),
+        status: emi.status as EMI['status'],
+        paidDate: emi.paid_date ? new Date(emi.paid_date) : undefined,
+        reminderSent: emi.reminder_sent,
+      }));
+    } catch (error) {
+      console.error('Error fetching EMIs:', error);
+      return [];
+    }
   }
 
-  static async payEMI(emiId: string, paymentMethod: string): Promise<boolean> {
-    const emis = LocalStorage.get<EMI[]>(this.EMIS_KEY) || [];
-    const emiIndex = emis.findIndex(emi => emi.id === emiId);
-    
-    if (emiIndex !== -1) {
-      emis[emiIndex].status = 'paid';
-      emis[emiIndex].paidDate = new Date();
-      emis[emiIndex].paymentMethod = paymentMethod;
-      LocalStorage.set(this.EMIS_KEY, emis);
-      return true;
+  static async payEMI(emiId: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      const { error } = await supabase
+        .from('emis')
+        .update({
+          status: 'paid',
+          paid_date: new Date().toISOString(),
+        })
+        .eq('emi_id', emiId);
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: 'Network error occurred' };
     }
-    
-    return false;
+  }
+
+  static async sendEMIReminders(): Promise<void> {
+    try {
+      // Get overdue EMIs that haven't been reminded
+      const { data: overdueEMIs } = await supabase
+        .from('emis')
+        .select('*')
+        .eq('status', 'unpaid')
+        .eq('reminder_sent', false)
+        .lt('due_date', new Date().toISOString().split('T')[0]);
+
+      if (overdueEMIs && overdueEMIs.length > 0) {
+        // Mark reminders as sent
+        const emiIds = overdueEMIs.map(emi => emi.emi_id);
+        await supabase
+          .from('emis')
+          .update({ reminder_sent: true })
+          .in('emi_id', emiIds);
+
+        // In production, send actual notifications
+        console.log(`Sent ${overdueEMIs.length} EMI reminders`);
+      }
+    } catch (error) {
+      console.error('Error sending EMI reminders:', error);
+    }
   }
 }

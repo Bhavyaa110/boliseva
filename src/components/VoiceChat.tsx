@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Mic, Volume2, VolumeX } from 'lucide-react';
+import { Send, Mic, Volume2, VolumeX, ArrowLeft } from 'lucide-react';
 import { ChatMessage } from '../types';
 import { getTranslation } from '../utils/translations';
 import { useVoice } from '../hooks/useVoice';
@@ -8,10 +8,11 @@ import { VoiceButton } from './VoiceButton';
 
 interface VoiceChatProps {
   language: string;
+  onBack: () => void;
   onLoanRequest?: () => void;
 }
 
-export const VoiceChat: React.FC<VoiceChatProps> = ({ language, onLoanRequest }) => {
+export const VoiceChat: React.FC<VoiceChatProps> = ({ language, onBack, onLoanRequest }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: '1',
@@ -103,6 +104,12 @@ export const VoiceChat: React.FC<VoiceChatProps> = ({ language, onLoanRequest })
             </p>
           </div>
           <div className="flex items-center space-x-2">
+            <button
+              onClick={onBack}
+              className="p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
             {isSpeaking && (
               <button
                 onClick={stopSpeaking}

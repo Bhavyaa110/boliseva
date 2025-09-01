@@ -4,17 +4,27 @@ import { LoanApplication } from '../types';
 import { LOAN_TYPES } from '../utils/constants';
 import { getTranslation } from '../utils/translations';
 import { VoiceButton } from './VoiceButton';
+import { LanguageSwitch } from './LanguageSwitch';
 import { useVoice } from '../hooks/useVoice';
 import { LoanService } from '../services/loanService';
 
 interface LoanFormProps {
   language: string;
   userId: string;
+  onLanguageChange: (language: string) => void;
   onBack: () => void;
-  onComplete: (loan: LoanApplication) => void;
+  onComplete: () => void;
+  onDocumentVerification: () => void;
 }
 
-export const LoanForm: React.FC<LoanFormProps> = ({ language, userId, onBack, onComplete }) => {
+export const LoanForm: React.FC<LoanFormProps> = ({ 
+  language, 
+  userId, 
+  onLanguageChange,
+  onBack, 
+  onComplete,
+  onDocumentVerification 
+}) => {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     type: 'personal' as LoanApplication['type'],
@@ -24,6 +34,7 @@ export const LoanForm: React.FC<LoanFormProps> = ({ language, userId, onBack, on
     employment: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
   const { isListening, isSpeaking, isSupported, startListening, speak, stopSpeaking } = useVoice(language);
 
   const handleVoiceInput = async (field: keyof typeof formData) => {
@@ -48,7 +59,7 @@ export const LoanForm: React.FC<LoanFormProps> = ({ language, userId, onBack, on
   };
 
   const handleNext = () => {
-    if (step < 4) {
+    if (step < 5) {
       setStep(step + 1);
     } else {
       handleSubmit();
@@ -56,22 +67,30 @@ export const LoanForm: React.FC<LoanFormProps> = ({ language, userId, onBack, on
   };
 
   const handleSubmit = async () => {
+    setError('');
     setIsSubmitting(true);
     
     try {
-      const application = await LoanService.submitApplication({
+      const result = await LoanService.submitApplication({
         userId,
         type: formData.type,
         amount: parseInt(formData.amount),
         purpose: formData.purpose,
         income: parseInt(formData.income),
         employment: formData.employment,
+        documentsVerified: true, // Assuming documents are verified before reaching this step
       });
       
-      await speak('Your loan application has been submitted successfully!');
-      onComplete(application);
+      if (result.success) {
+        await speak('Your loan application has been submitted successfully! It is now waiting for bank approval.');
+        onComplete();
+      } else {
+        setError(result.error || 'Failed to submit application');
+        await speak('There was an error submitting your application. Please try again.');
+      }
     } catch (error) {
       console.error('Error submitting loan:', error);
+      setError('Network error occurred');
     } finally {
       setIsSubmitting(false);
     }
@@ -270,6 +289,53 @@ export const LoanForm: React.FC<LoanFormProps> = ({ language, userId, onBack, on
               </div>
             </div>
           </div>
+      case 5:
+        return (
+          <div className="space-y-6">
+            <div className="text-center">
+              <FileText className="w-12 h-12 text-blue-600 mx-auto mb-4" />
+              <h2 className="text-xl font-bold text-gray-900 mb-2">
+                {getTranslation('reviewApplication', language)}
+              </h2>
+              <p className="text-gray-600">Review your loan application details</p>
+            </div>
+        );
+            <div className="space-y-4">
+              <div className="bg-gray-50 rounded-lg p-4">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-gray-600">{getTranslation('loanType', language)}</p>
+                    <p className="font-medium">{getTranslation(formData.type, language)}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-600">{getTranslation('amount', language)}</p>
+                    <p className="font-medium">₹{parseInt(formData.amount).toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-600">{getTranslation('monthlyIncome', language)}</p>
+                    <p className="font-medium">₹{parseInt(formData.income).toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-600">{getTranslation('employment', language)}</p>
+                    <p className="font-medium">{formData.employment}</p>
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <p className="text-gray-600 text-sm">{getTranslation('purpose', language)}</p>
+                  <p className="font-medium">{formData.purpose}</p>
+                </div>
+              </div>
+
+              <div className="bg-blue-50 rounded-lg p-4">
+                <p className="text-blue-800 text-sm">
+                  <strong>Estimated EMI:</strong> ₹{LoanService.calculateEMI(parseInt(formData.amount), 12, 12).toLocaleString()}/month
+                </p>
+                <p className="text-blue-600 text-xs mt-1">
+                  *Based on 12% interest rate for 12 months
+                </p>
+              </div>
+            </div>
+          </div>
         );
 
       default:
@@ -287,6 +353,8 @@ export const LoanForm: React.FC<LoanFormProps> = ({ language, userId, onBack, on
         return formData.purpose.trim() && formData.income && parseInt(formData.income) > 0;
       case 4:
         return formData.employment;
+      case 5:
+        return true;
       default:
         return false;
     }
@@ -296,22 +364,37 @@ export const LoanForm: React.FC<LoanFormProps> = ({ language, userId, onBack, on
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
         <div className="flex items-center justify-between mb-8">
-          <button
-            onClick={onBack}
-            className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            {getTranslation('back', language)}
-          </button>
+          <div className="flex items-center">
+            <button
+              onClick={step === 1 ? onBack : () => setStep(step - 1)}
+              className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              {getTranslation('back', language)}
+            </button>
+          </div>
+          <LanguageSwitch 
+            currentLanguage={language}
+            onLanguageChange={onLanguageChange}
+          />
+        </div>
+
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-800 text-sm">{error}</p>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between mb-8">
           <div className="text-sm text-gray-500">
-            Step {step} of 4
+            {getTranslation('step', language)} {step} {getTranslation('of', language)} 5
           </div>
         </div>
 
         {/* Progress Bar */}
         <div className="mb-8">
           <div className="flex justify-between mb-2">
-            {[1, 2, 3, 4].map((stepNumber) => (
+            {[1, 2, 3, 4, 5].map((stepNumber) => (
               <div
                 key={stepNumber}
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
@@ -327,7 +410,7 @@ export const LoanForm: React.FC<LoanFormProps> = ({ language, userId, onBack, on
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div
               className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${(step / 4) * 100}%` }}
+              style={{ width: `${(step / 5) * 100}%` }}
             />
           </div>
         </div>
@@ -337,24 +420,25 @@ export const LoanForm: React.FC<LoanFormProps> = ({ language, userId, onBack, on
 
         {/* Navigation */}
         <div className="flex justify-between mt-8">
-          <button
-            onClick={() => setStep(Math.max(1, step - 1))}
-            disabled={step === 1}
-            className="px-6 py-3 text-gray-600 hover:text-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {getTranslation('back', language)}
-          </button>
+          {step === 5 && (
+            <button
+              onClick={onDocumentVerification}
+              className="px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+            >
+              {getTranslation('verifyDocuments', language)}
+            </button>
+          )}
           
           <button
             onClick={handleNext}
             disabled={!isStepValid() || isSubmitting}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center"
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center ml-auto"
           >
             {isSubmitting ? (
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
             ) : (
               <>
-                {step === 4 ? getTranslation('submit', language) : getTranslation('next', language)}
+                {step === 5 ? getTranslation('submit', language) : getTranslation('next', language)}
               </>
             )}
           </button>
@@ -364,7 +448,7 @@ export const LoanForm: React.FC<LoanFormProps> = ({ language, userId, onBack, on
         {isSupported && (
           <div className="mt-6 p-4 bg-blue-50 rounded-lg">
             <p className="text-sm text-blue-800 text-center">
-              🎤 Tap the microphone icon to fill fields with your voice
+              🎤 {getTranslation('tapMicrophoneToFill', language)}
             </p>
           </div>
         )}

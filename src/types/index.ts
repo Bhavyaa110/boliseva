@@ -2,8 +2,10 @@ export interface User {
   id: string;
   name: string;
   phone: string;
-  aadhaar?: string;
+  dob: string;
   accountNumber?: string;
+  bankNumber?: string;
+  ifscCode?: string;
   email?: string;
   preferredLanguage: string;
   isVerified: boolean;
@@ -18,8 +20,9 @@ export interface LoanApplication {
   purpose: string;
   income: number;
   employment: string;
-  status: 'draft' | 'submitted' | 'under_review' | 'approved' | 'rejected' | 'disbursed';
+  status: 'applied' | 'pending' | 'approved' | 'rejected' | 'disbursed';
   documents: Document[];
+  documentsVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -37,9 +40,9 @@ export interface EMI {
   loanId: string;
   amount: number;
   dueDate: Date;
-  status: 'pending' | 'paid' | 'overdue';
+  status: 'paid' | 'unpaid' | 'overdue';
   paidDate?: Date;
-  paymentMethod?: string;
+  reminderSent?: boolean;
 }
 
 export interface ChatMessage {
