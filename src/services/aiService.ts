@@ -82,6 +82,14 @@ export class AIService {
         documents: "For loan approval, you'll need:\n\n• Aadhaar Card (identity proof)\n• PAN Card (tax identification)\n• Bank statements (3 months)\n• Income proof (salary slips/ITR)\n• Address proof\n\nI can guide you through the verification process. Shall we start?",
         confusion: "I understand financial terms can be confusing. Let me break it down simply:\n\n• Loan = Money you borrow\n• Interest = Cost of borrowing\n• EMI = Monthly payment\n• Tenure = Repayment period\n\nWhat specific term would you like me to explain?",
         encouragement: "You're doing great! Applying for a loan is a big step, and I'm here to guide you through every part of the process. What would you like to know next?",
+        status: "You can check your loan status and outstanding balance here. Please provide your loan ID or registered mobile number.",
+        prepayment: "You can prepay your loan partially or fully. Prepayment may reduce your EMI burden. Do you want to know the foreclosure charges?",
+        tenure: "The repayment tenure can range from 6 months to 7 years depending on the loan type. Would you like me to calculate EMIs for different tenures?",
+        latePayment: "If you miss an EMI payment, it may attract penalty charges and affect your credit score. Do you want me to show how to pay overdue EMIs?",
+        creditScore: "Your credit score plays an important role in loan approval. A score above 700 is generally considered good. Would you like me to guide you on improving your score?",
+        calculator: "I can calculate your EMI. Please provide the loan amount, interest rate, and tenure.",
+        support: "You can contact our customer support at 1800-123-456 or email support@boliseva.com. Do you want me to connect you to a representative?",
+        tips: "Here are some tips: Pay EMIs on time, avoid multiple loans at once, maintain good savings, and review your credit report regularly.",
         default: "I'm here to help with all your loan and financial needs. You can ask me about:\n\n• Loan applications and types\n• EMI calculations and payments\n• Document requirements\n• Interest rates and eligibility\n• Payment schedules\n\nWhat would you like to know?",
       },
       hi: {
@@ -94,6 +102,14 @@ export class AIService {
         documents: "ऋण अनुमोदन के लिए, आपको चाहिए:\n\n• आधार कार्ड (पहचान प्रमाण)\n• पैन कार्ड (कर पहचान)\n• बैंक स्टेटमेंट (3 महीने)\n• आय प्रमाण (वेतन पर्ची/ITR)\n• पता प्रमाण\n\nमैं सत्यापन प्रक्रिया में आपका मार्गदर्शन कर सकता हूं। क्या हम शुरू करें?",
         confusion: "मैं समझता हूं कि वित्तीय शब्द भ्रमित करने वाले हो सकते हैं। मुझे इसे सरल तरीके से समझाने दीजिए:\n\n• ऋण = आप जो पैसा उधार लेते हैं\n• ब्याज = उधार लेने की लागत\n• EMI = मासिक भुगतान\n• अवधि = चुकौती की अवधि\n\nकौन सा विशिष्ट शब्द आप चाहेंगे कि मैं समझाऊं?",
         encouragement: "आप बहुत अच्छा कर रहे हैं! ऋण के लिए आवेदन करना एक बड़ा कदम है, और मैं प्रक्रिया के हर हिस्से में आपका मार्गदर्शन करने के लिए यहां हूं। आप आगे क्या जानना चाहेंगे?",
+        status: "आप यहां अपना ऋण की स्थिति और बकाया राशि देख सकते हैं। कृपया अपना लोन आईडी या पंजीकृत मोबाइल नंबर दें।",
+        prepayment: "आप अपना ऋण आंशिक या पूर्ण रूप से पहले चुका सकते हैं। इससे आपकी EMI का बोझ कम हो जाएगा। क्या आप अग्रिम भुगतान शुल्क जानना चाहेंगे?",
+        tenure: "चुकौती अवधि ऋण के प्रकार के आधार पर 6 महीने से 7 साल तक हो सकती है। क्या आप चाहेंगे कि मैं अलग-अलग अवधि के लिए EMI की गणना करूं?",
+        latePayment: "यदि आप EMI का भुगतान चूक जाते हैं, तो उस पर जुर्माना लग सकता है और आपका क्रेडिट स्कोर प्रभावित हो सकता है। क्या आप चाहेंगे कि मैं आपको बकाया EMI का भुगतान करने का तरीका बताऊं?",
+        creditScore: "ऋण स्वीकृति में आपका क्रेडिट स्कोर महत्वपूर्ण भूमिका निभाता है। 700 से अधिक स्कोर आमतौर पर अच्छा माना जाता है। क्या आप चाहेंगे कि मैं आपको स्कोर सुधारने के तरीके बताऊं?",
+        calculator: "मैं आपकी EMI की गणना कर सकता हूं। कृपया ऋण राशि, ब्याज दर और अवधि बताएं।",
+        support: "आप हमारी ग्राहक सहायता टीम से 1800-123-456 पर कॉल करके या support@boliseva.com पर ईमेल करके संपर्क कर सकते हैं। क्या आप चाहेंगे कि मैं आपको प्रतिनिधि से जोड़ दूं?",
+        tips: "कुछ सुझाव: EMI समय पर चुकाएं, एक साथ कई ऋण लेने से बचें, अच्छी बचत बनाए रखें और नियमित रूप से अपना क्रेडिट रिपोर्ट देखें।",
         default: "मैं आपकी सभी ऋण और वित्तीय आवश्यकताओं में मदद के लिए यहां हूं। आप मुझसे पूछ सकते हैं:\n\n• ऋण आवेदन और प्रकार\n• EMI गणना और भुगतान\n• दस्तावेज आवश्यकताएं\n• ब्याज दरें और पात्रता\n• भुगतान अनुसूची\n\nआप क्या जानना चाहेंगे?",
       }
     };
@@ -147,7 +163,47 @@ export class AIService {
     if (input.includes('scared') || input.includes('worried') || input.includes('डरा') || input.includes('चिंतित')) {
       return langResponses.encouragement;
     }
+
+    // Loan status
+    if (input.includes('status') || input.includes('balance') || input.includes('outstanding') || input.includes('शेष') || input.includes('स्थिति') || input.includes('बकाया')) {
+      return langResponses.status;
+    }
+
+    // Prepayment / Foreclosure
+    if (input.includes('prepay') || input.includes('foreclosure') || input.includes('early payment') || input.includes('अग्रिम') || input.includes('जल्दी')) {
+      return langResponses.prepayment;
+    }
     
-    return langResponses.default;
+    // Tenure queries
+  if (input.includes('tenure') || input.includes('duration') || input.includes('months') || input.includes('years') || input.includes('अवधि') || input.includes('महीने') || input.includes('साल')) {
+    return langResponses.tenure;
+  }
+
+  // Late payment / Default
+  if (input.includes('late') || input.includes('missed') || input.includes('default') || input.includes('overdue') || input.includes('देरी') || input.includes('डिफॉल्ट')) {
+    return langResponses.latePayment;
+  }
+
+  // Credit score queries
+  if (input.includes('credit score') || input.includes('cibil') || input.includes('स्कोर') || input.includes('सिबिल')) {
+    return langResponses.creditScore;
+  }
+
+  // EMI calculator
+  if (input.includes('calculate') || input.includes('calculator') || input.includes('कैलकुलेटर') || input.includes('गणना')) {
+    return langResponses.calculator;
+  }
+
+  // Contact support
+  if (input.includes('contact') || input.includes('support') || input.includes('call') || input.includes('phone') || input.includes('नंबर') || input.includes('सहायता')) {
+    return langResponses.support;
+  }
+
+  // Finance tips
+  if (input.includes('tip') || input.includes('advice') || input.includes('save money') || input.includes('सुझाव') || input.includes('सलाह')) {
+    return langResponses.tips;
+  }
+    
+  return langResponses.default;
   }
 }
