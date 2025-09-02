@@ -16,7 +16,6 @@ export const SignupForm: React.FC<SignupFormProps> = ({ language, onBack, onSign
     name: '',
     dob: '',
     accNo: '',
-    bankNo: '',
     ifscCode: '',
     phoneNo: '',
   });
@@ -30,7 +29,6 @@ export const SignupForm: React.FC<SignupFormProps> = ({ language, onBack, onSign
         name: 'Please tell me your full name',
         dob: 'Please tell me your date of birth in DD MM YYYY format',
         accNo: 'Please tell me your account number',
-        bankNo: 'Please tell me your bank number',
         ifscCode: 'Please tell me your IFSC code',
         phoneNo: 'Please tell me your phone number',
       };
@@ -187,35 +185,6 @@ export const SignupForm: React.FC<SignupFormProps> = ({ language, onBack, onSign
                     isListening={isListening}
                     isSpeaking={isSpeaking}
                     onStartListening={() => handleVoiceInput('accNo')}
-                    onStopSpeaking={stopSpeaking}
-                    size="sm"
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Bank Number */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <Building className="w-4 h-4 inline mr-2" />
-              Bank Number
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                value={formData.bankNo}
-                onChange={(e) => setFormData(prev => ({ ...prev, bankNo: e.target.value }))}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-12"
-                placeholder="Enter your bank number"
-                required
-              />
-              {isSupported && (
-                <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
-                  <VoiceButton
-                    isListening={isListening}
-                    isSpeaking={isSpeaking}
-                    onStartListening={() => handleVoiceInput('bankNo')}
                     onStopSpeaking={stopSpeaking}
                     size="sm"
                   />

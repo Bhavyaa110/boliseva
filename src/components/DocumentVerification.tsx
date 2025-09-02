@@ -13,7 +13,6 @@ interface DocumentVerificationProps {
 interface DocumentStatus {
   aadhaar: 'pending' | 'verified' | 'rejected';
   pan: 'pending' | 'verified' | 'rejected';
-  kyc: 'pending' | 'verified' | 'rejected';
 }
 
 export const DocumentVerification: React.FC<DocumentVerificationProps> = ({
@@ -24,7 +23,6 @@ export const DocumentVerification: React.FC<DocumentVerificationProps> = ({
   const [documents, setDocuments] = useState<DocumentStatus>({
     aadhaar: 'pending',
     pan: 'pending',
-    kyc: 'pending',
   });
   const [aadhaarNumber, setAadhaarNumber] = useState('');
   const [panNumber, setPanNumber] = useState('');
@@ -66,8 +64,6 @@ export const DocumentVerification: React.FC<DocumentVerificationProps> = ({
       isValid = aadhaarNumber.length === 12 && /^\d+$/.test(aadhaarNumber);
     } else if (type === 'pan') {
       isValid = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(panNumber);
-    } else if (type === 'kyc') {
-      isValid = documents.aadhaar === 'verified' && documents.pan === 'verified';
     }
     
     setDocuments(prev => ({
@@ -83,7 +79,6 @@ export const DocumentVerification: React.FC<DocumentVerificationProps> = ({
     setIsVerifying(false);
   };
 
-  const allDocumentsVerified = Object.values(documents).every(status => status === 'verified');
 
   const getStatusIcon = (status: DocumentStatus[keyof DocumentStatus]) => {
     switch (status) {
@@ -216,32 +211,12 @@ export const DocumentVerification: React.FC<DocumentVerificationProps> = ({
           </div>
 
           {/* KYC Verification */}
-          <div className={`border-2 rounded-lg p-4 ${getStatusColor(documents.kyc)}`}>
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center">
-                {getStatusIcon(documents.kyc)}
-                <span className="ml-2 font-medium">KYC Verification</span>
-              </div>
-              {documents.kyc === 'pending' && documents.aadhaar === 'verified' && documents.pan === 'verified' && (
-                <button
-                  onClick={() => verifyDocument('kyc')}
-                  disabled={isVerifying}
-                  className="text-blue-600 hover:text-blue-700 text-sm font-medium disabled:opacity-50"
-                >
-                  Complete KYC
-                </button>
-              )}
-            </div>
-            <p className="text-xs text-gray-600">
-              Complete Aadhaar and PAN verification first
-            </p>
-          </div>
         </div>
 
         {/* Continue Button */}
         <button
           onClick={onComplete}
-          disabled={!allDocumentsVerified}
+          disabled={documents.aadhaar !== 'verified' || documents.pan !== 'verified'}
           className="w-full mt-8 bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center"
         >
           {getTranslation('continue', language)}

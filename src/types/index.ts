@@ -4,7 +4,6 @@ export interface User {
   phone: string;
   dob: string;
   accountNumber?: string;
-  bankNumber?: string;
   ifscCode?: string;
   email?: string;
   preferredLanguage: string;

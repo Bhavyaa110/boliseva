@@ -51,7 +51,7 @@ export const VoiceChat: React.FC<VoiceChatProps> = ({ language, onBack, onLoanRe
 
     // Generate AI response
     setTimeout(async () => {
-      const response = AIService.generateResponse(text, { language }, language);
+      const response = await AIService.generateResponse(text, { language }, language);
       
       const botMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
@@ -76,14 +76,6 @@ export const VoiceChat: React.FC<VoiceChatProps> = ({ language, onBack, onLoanRe
     }, 1000);
   };
 
-  const handleVoiceMessage = async () => {
-    try {
-      const transcript = await startListening();
-      handleSendMessage(transcript);
-    } catch (error) {
-      console.error('Voice input error:', error);
-    }
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -188,7 +180,14 @@ export const VoiceChat: React.FC<VoiceChatProps> = ({ language, onBack, onLoanRe
             <VoiceButton
               isListening={isListening}
               isSpeaking={isSpeaking}
-              onStartListening={handleVoiceMessage}
+              onStartListening={async () => {
+                try {
+                  const transcript = await startListening();
+                  handleSendMessage(transcript);
+                } catch (error) {
+                  console.error('Voice input error:', error);
+                }
+              }}
               onStopSpeaking={stopSpeaking}
               size="md"
             />
