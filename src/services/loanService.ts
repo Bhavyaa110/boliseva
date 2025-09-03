@@ -13,17 +13,27 @@ export class LoanService {
     documentsVerified: boolean;
   }): Promise<{ success: boolean; loanId?: string; error?: string }> {
     try {
+      // Set user context for RLS policies
+      const { data: userData } = await supabase
+        .from('signups')
+        .select('phone_no')
+        .eq('id', application.userId)
+        .single();
+
+      if (userData) {
+        await supabase.rpc('set_user_context', { phone_number: userData.phone_no });
+      }
+
       const { data, error } = await supabase
         .from('loans')
         .insert({
-          user_id: application.userId,
           loan_type: application.type,
           amount: application.amount,
           purpose: application.purpose,
           income: application.income,
           employment: application.employment,
           documents_verified: application.documentsVerified,
-          status: 'applied',
+          phone_no: userData?.phone_no,
         })
         .select()
         .single();

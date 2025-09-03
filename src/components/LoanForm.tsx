@@ -94,7 +94,7 @@ const LoanForm: React.FC<LoanFormProps> = ({
   const calculateEMI = () => {
     const principal = parseFloat(formData.amount);
     const tenure = parseInt(formData.tenure);
-    const annualRate = 12; // 12% annual interest rate
+    const annualRate = getInterestRate(formData.type); // Get rate based on loan type
     
     if (principal && tenure && annualRate) {
       const monthlyRate = annualRate / (12 * 100);
@@ -104,6 +104,22 @@ const LoanForm: React.FC<LoanFormProps> = ({
     }
   };
 
+  const getInterestRate = (loanType: string): number => {
+    switch (loanType) {
+      case 'personal': return 15;
+      case 'business': return 16;
+      case 'agriculture': return 9;
+      case 'education': return 12;
+      default: return 15;
+    }
+  };
+
+  // Auto-calculate EMI when amount, type, or tenure changes
+  useEffect(() => {
+    if (formData.amount && formData.type && formData.tenure) {
+      calculateEMI();
+    }
+  }, [formData.amount, formData.type, formData.tenure]);
   const handleSubmit = async () => {
     setError('');
     setIsSubmitting(true);
@@ -267,31 +283,37 @@ const LoanForm: React.FC<LoanFormProps> = ({
             </div>
 
             {/* EMI Calculator */}
-            {formData.amount && formData.tenure && (
+            {formData.amount && formData.tenure && formData.type && (
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-medium text-blue-900 flex items-center">
-                    <Calculator className="w-4 h-4 mr-2" />
-                    EMI Calculator
-                  </h3>
-                  <button
-                    onClick={calculateEMI}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors"
-                  >
-                    Calculate
-                  </button>
+                <h3 className="font-medium text-blue-900 flex items-center mb-4">
+                  <Calculator className="w-4 h-4 mr-2" />
+                  EMI Calculator
+                </h3>
+                <div className="text-center">
+                  <p className="text-sm text-blue-700 mb-1">Monthly EMI</p>
+                  <p className="text-3xl font-bold text-blue-900 mb-2">
+                    ₹{calculatedEMI ? calculatedEMI.toLocaleString() : '0'}
+                  </p>
+                  {calculatedEMI && (
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-blue-600">Principal:</span>
+                        <span className="font-medium">₹{parseInt(formData.amount).toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-blue-600">Total Interest:</span>
+                        <span className="font-medium">₹{(calculatedEMI * parseInt(formData.tenure) - parseInt(formData.amount)).toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between border-t pt-2">
+                        <span className="text-blue-600">Total Amount:</span>
+                        <span className="font-bold">₹{(calculatedEMI * parseInt(formData.tenure)).toLocaleString()}</span>
+                      </div>
+                      <div className="text-xs text-blue-600 mt-2">
+                        @ {getInterestRate(formData.type)}% annual interest rate
+                      </div>
+                    </div>
+                  )}
                 </div>
-                {calculatedEMI && (
-                  <div className="text-center">
-                    <p className="text-sm text-blue-700 mb-1">Monthly EMI</p>
-                    <p className="text-2xl font-bold text-blue-900">₹{calculatedEMI.toLocaleString()}</p>
-                    <p className="text-xs text-blue-600 mt-1">
-                      Total: ₹{(calculatedEMI * parseInt(formData.tenure)).toLocaleString()} 
-                      (Principal: ₹{parseInt(formData.amount).toLocaleString()}, 
-                      Interest: ₹{(calculatedEMI * parseInt(formData.tenure) - parseInt(formData.amount)).toLocaleString()})
-                    </p>
-                  </div>
-                )}
               </div>
             )}
 
@@ -450,9 +472,23 @@ const LoanForm: React.FC<LoanFormProps> = ({
                   <div className="text-center bg-blue-100 rounded-lg p-4">
                     <p className="text-sm text-blue-700 mb-1">Estimated Monthly EMI</p>
                     <p className="text-3xl font-bold text-blue-900">₹{calculatedEMI.toLocaleString()}</p>
-                    <p className="text-xs text-blue-600 mt-1">
-                      @ 12% annual interest rate
-                    </p>
+                    <div className="space-y-1 text-sm mt-3">
+                      <div className="flex justify-between">
+                        <span className="text-blue-600">Principal:</span>
+                        <span className="font-medium">₹{parseInt(formData.amount).toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-blue-600">Total Interest:</span>
+                        <span className="font-medium">₹{(calculatedEMI * parseInt(formData.tenure) - parseInt(formData.amount)).toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between border-t pt-1">
+                        <span className="text-blue-600">Total Amount:</span>
+                        <span className="font-bold">₹{(calculatedEMI * parseInt(formData.tenure)).toLocaleString()}</span>
+                      </div>
+                      <div className="text-xs text-blue-600 mt-2">
+                        @ {getInterestRate(formData.type)}% annual interest rate
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}

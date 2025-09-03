@@ -19,7 +19,6 @@ export interface Database {
           name: string;
           dob: string;
           acc_no: string;
-          bank_no: string;
           ifsc_code: string;
           phone_no: string;
           created_at: string;
@@ -29,7 +28,6 @@ export interface Database {
           name: string;
           dob: string;
           acc_no: string;
-          bank_no: string;
           ifsc_code: string;
           phone_no: string;
           created_at?: string;
@@ -39,7 +37,6 @@ export interface Database {
           name?: string;
           dob?: string;
           acc_no?: string;
-          bank_no?: string;
           ifsc_code?: string;
           phone_no?: string;
           created_at?: string;
