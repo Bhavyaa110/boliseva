@@ -15,6 +15,7 @@ import {
 import { User, LoanApplication, EMI } from '../types';
 import { getTranslation } from '../utils/translations';
 import { LoanService } from '../services/loanService';
+import { supabase } from '../lib/supabase';
 import { VoiceButton } from './VoiceButton';
 import { LanguageSwitch } from './LanguageSwitch';
 import { useVoice } from '../hooks/useVoice';
