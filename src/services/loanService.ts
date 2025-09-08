@@ -21,7 +21,7 @@ export class LoanService {
         .single();
 
       if (userData) {
-        await supabase.rpc('set_config', { parameter: 'app.current_phone', value: userData.phone_no });
+        await supabase.rpc('set_user_context', { phone_no: userData.phone_no });
       }
 
       const { data, error } = await supabase

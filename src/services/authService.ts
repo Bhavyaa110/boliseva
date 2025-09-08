@@ -84,9 +84,8 @@ export class AuthService {
         }
 
         // Set session context
-        await supabase.rpc('set_config', {
-          parameter: 'app.current_phone',
-          value: phoneNo
+        await supabase.rpc('set_user_context', {
+          phone_no: phoneNo
         });
 
         const user: User = {
@@ -134,9 +133,8 @@ export class AuthService {
         .eq('phone_no', phoneNo);
 
       // Set session context
-      await supabase.rpc('set_config', {
-        parameter: 'app.current_phone',
-        value: phoneNo
+      await supabase.rpc('set_user_context', {
+        phone_no: phoneNo
       });
 
       const user: User = {
