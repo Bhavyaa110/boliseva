@@ -23,6 +23,7 @@ export class LoanService {
       if (userData) {
         await supabase.rpc('set_user_context', { phone_no: userData.phone_no });
           phone_number: userData.phone_no 
+      }
 
       const { data, error } = await supabase
         .from('loans')
