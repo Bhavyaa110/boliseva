@@ -70,11 +70,7 @@ export class AIService {
     return { risk, score: riskScore };
   }
 
-<<<<<<< HEAD
   static generateResponse(userInput: string, language: string): string {
-=======
-  static async generateResponse(userInput: string, context: any, language: string): Promise<string> {
->>>>>>> 8e536f1a414e086c9186c17be125f2cca7d452e9
     const responses = {
       en: {
         greeting: "Hello! I'm BoliSeva, your personal loan assistant. I understand the challenges of getting loans in rural India. I can help you with loan applications, EMI management, and answer all your financial questions in simple terms. How can I assist you today?",
