@@ -9,9 +9,9 @@
   "start_url": "/",
   "icons": [
     {
-      "src": "/vite.svg",
+      "src": "/vite.jpg",
       "sizes": "any",
-      "type": "image/svg+xml"
+      "type": "image/jpg"
     }
   ]
 }
