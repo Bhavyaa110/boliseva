@@ -1,6 +1,5 @@
 import { LoanApplication, EMI } from '../types';
 import { supabase } from '../lib/supabase';
-import { AIService } from './aiService';
 
 export class LoanService {
   static async submitApplication(application: {
@@ -13,44 +12,71 @@ export class LoanService {
     documentsVerified: boolean;
   }): Promise<{ success: boolean; loanId?: string; error?: string }> {
     try {
-      // Set user context for RLS policies
-      const { data: userData } = await supabase
+      // First, get user data to verify they exist
+      const { data: userData, error: userError } = await supabase
         .from('signups')
-        .select('phone_no')
+        .select('id, phone_no, name')
         .eq('id', application.userId)
         .single();
 
-      if (userData) {
-        await supabase.rpc('set_user_context', { phone_no: userData.phone_no });
-          phone_number: userData.phone_no 
+      if (userError || !userData) {
+        return { success: false, error: 'User not found. Please ensure you are logged in.' };
       }
 
+      // Set user context for RLS policies using the correct function name
+      const { error: contextError } = await supabase.rpc('set_user_context', { 
+        phone_number: userData.phone_no 
+      });
+
+      if (contextError) {
+        console.error('Error setting user context:', contextError);
+        return { success: false, error: 'Authentication error. Please try again.' };
+      }
+
+      // Insert loan application
       const { data, error } = await supabase
         .from('loans')
         .insert({
+          user_id: application.userId,
           loan_type: application.type,
           amount: application.amount,
           purpose: application.purpose,
           income: application.income,
           employment: application.employment,
           documents_verified: application.documentsVerified,
-          phone_no: userData?.phone_no,
+          status: 'pending'
         })
         .select()
         .single();
 
       if (error) {
+        console.error('Loan insertion error:', error);
         return { success: false, error: error.message };
       }
 
       return { success: true, loanId: data.loan_id };
     } catch (error) {
+      console.error('Loan application error:', error);
       return { success: false, error: 'Network error occurred' };
     }
   }
 
   static async getLoansByUser(userId: string): Promise<LoanApplication[]> {
     try {
+      // Get user's phone number first
+      const { data: userData } = await supabase
+        .from('signups')
+        .select('phone_no')
+        .eq('id', userId)
+        .single();
+
+      if (userData) {
+        // Set user context for RLS policies
+        await supabase.rpc('set_user_context', { 
+          phone_number: userData.phone_no 
+        });
+      }
+
       const { data, error } = await supabase
         .from('loans')
         .select('*')
@@ -143,6 +169,20 @@ export class LoanService {
 
   static async getEMIsByUser(userId: string): Promise<EMI[]> {
     try {
+      // Get user's phone number first
+      const { data: userData } = await supabase
+        .from('signups')
+        .select('phone_no')
+        .eq('id', userId)
+        .single();
+
+      if (userData) {
+        // Set user context for RLS policies
+        await supabase.rpc('set_user_context', { 
+          phone_number: userData.phone_no 
+        });
+      }
+
       const { data, error } = await supabase
         .from('emis')
         .select(`

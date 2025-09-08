@@ -80,7 +80,10 @@ function App() {
     
     if (result.success) {
       await speak(language === 'hi' ? 'सफलतापूर्वक लॉगिन हो गए' : 'Successfully logged in');
-      setAppState('dashboard');
+      // Small delay to ensure user context is properly set
+      setTimeout(() => {
+        setAppState('dashboard');
+      }, 500);
     } else {
       await speak(result.error || 'OTP verification failed');
     }

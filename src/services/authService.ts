@@ -83,10 +83,14 @@ export class AuthService {
           return { success: false, error: 'User not found' };
         }
 
-        // Set session context
-        await supabase.rpc('set_user_context', {
+        // Set session context for RLS policies
+        const { error: contextError } = await supabase.rpc('set_user_context', {
           phone_number: phoneNo
         });
+
+        if (contextError) {
+          console.error('Error setting user context:', contextError);
+        }
 
         const user: User = {
           id: userData.id,
@@ -132,10 +136,14 @@ export class AuthService {
         .update({ last_login: new Date().toISOString() })
         .eq('phone_no', phoneNo);
 
-      // Set session context
-      await supabase.rpc('set_user_context', {
+      // Set session context for RLS policies
+      const { error: contextError } = await supabase.rpc('set_user_context', {
         phone_number: phoneNo
       });
+
+      if (contextError) {
+        console.error('Error setting user context:', contextError);
+      }
 
       const user: User = {
         id: userData.id,

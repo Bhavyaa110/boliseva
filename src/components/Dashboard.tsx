@@ -46,31 +46,54 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   useEffect(() => {
     const fetchData = async () => {
-      // Set user context for RLS policies
-      await supabase.rpc('set_user_context', { 
-        phone_number: user.phone 
-      });
-      
+      try {
+        // Set user context for RLS policies
+        const { error: contextError } = await supabase.rpc('set_user_context', { 
+          phone_number: user.phone 
+        });
+
+        if (contextError) {
+          console.error('Error setting user context:', contextError);
+        }
+        
+        // Fetch user's loans and EMIs
+        const userLoans = await LoanService.getLoansByUser(user.id);
+        const userEMIs = await LoanService.getEMIsByUser(user.id);
+        setLoans(userLoans);
+        setEMIs(userEMIs);
+        
+        // Check for EMI reminders
+        const overdueEMIs = userEMIs.filter(emi => 
+          emi.status === 'unpaid' && 
+          emi.dueDate < new Date() && 
+          !emi.reminderSent
+        );
+        
+        if (overdueEMIs.length > 0) {
+          setNotifications([`You have ${overdueEMIs.length} overdue EMI(s)`]);
+          await LoanService.sendEMIReminders();
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      }
+    };
+    
+    if (user?.id) {
+      fetchData();
+    }
+  }, [user.id, user.phone]);
+
+  // Remove the duplicate loan/EMI fetching code
+  const fetchData = async () => {
+    try {
       const userLoans = await LoanService.getLoansByUser(user.id);
       const userEMIs = await LoanService.getEMIsByUser(user.id);
       setLoans(userLoans);
       setEMIs(userEMIs);
-      
-      // Check for EMI reminders
-      const overdueEMIs = userEMIs.filter(emi => 
-        emi.status === 'unpaid' && 
-        emi.dueDate < new Date() && 
-        !emi.reminderSent
-      );
-      
-      if (overdueEMIs.length > 0) {
-        setNotifications([`You have ${overdueEMIs.length} overdue EMI(s)`]);
-        await LoanService.sendEMIReminders();
-      }
-    };
-    
-    fetchData();
-  }, [user.id]);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
 
   const upcomingEMIs = emis.filter(emi => emi.status === 'unpaid').slice(0, 3);
   const overdueEMIs = emis.filter(emi => emi.status === 'overdue');

@@ -125,6 +125,13 @@ const LoanForm: React.FC<LoanFormProps> = ({
     setIsSubmitting(true);
 
     try {
+      // Validate user is properly authenticated
+      if (!userId) {
+        setError('User authentication required. Please log in again.');
+        setIsSubmitting(false);
+        return;
+      }
+
       const result = await LoanService.submitApplication({
         userId,
         type: formData.type,
@@ -143,10 +150,14 @@ const LoanForm: React.FC<LoanFormProps> = ({
         await speak(successMessages[language as keyof typeof successMessages] || successMessages.en);
         onComplete();
       } else {
-        setError(result.error || 'Failed to submit application');
+        const errorMessage = result.error || 'Failed to submit application';
+        setError(errorMessage);
+        await speak(`Error: ${errorMessage}`);
       }
     } catch (error) {
-      setError('Network error occurred');
+      const errorMessage = 'Network error occurred. Please check your connection and try again.';
+      setError(errorMessage);
+      await speak(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
