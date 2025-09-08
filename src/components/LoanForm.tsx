@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Calculator, CreditCard, DollarSign, Briefcase, Target, IndianRupee } from 'lucide-react';
 import { getTranslation } from '../utils/translations';
 import { VoiceButton } from './VoiceButton';
