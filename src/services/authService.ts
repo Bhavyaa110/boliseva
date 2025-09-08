@@ -83,15 +83,18 @@ export class AuthService {
           return { success: false, error: 'User not found' };
         }
 
-        // Set session context for RLS policies
-        const { error: contextError } = await supabase.rpc('set_user_context', {
+        // Set session context for RLS policies immediately
+        const { data: contextResult, error: contextError } = await supabase.rpc('set_user_context', {
           phone_number: phoneNo
         });
 
         if (contextError) {
           console.error('Error setting user context:', contextError);
+          return { success: false, error: `Authentication setup failed: ${contextError.message}` };
         }
 
+        console.log('User context set for phone:', phoneNo);
+        
         const user: User = {
           id: userData.id,
           name: userData.name,
@@ -136,15 +139,18 @@ export class AuthService {
         .update({ last_login: new Date().toISOString() })
         .eq('phone_no', phoneNo);
 
-      // Set session context for RLS policies
-      const { error: contextError } = await supabase.rpc('set_user_context', {
+      // Set session context for RLS policies immediately
+      const { data: contextResult, error: contextError } = await supabase.rpc('set_user_context', {
         phone_number: phoneNo
       });
 
       if (contextError) {
         console.error('Error setting user context:', contextError);
+        return { success: false, error: `Authentication setup failed: ${contextError.message}` };
       }
 
+      console.log('User context set for phone:', phoneNo);
+      
       const user: User = {
         id: userData.id,
         name: userData.name,
@@ -159,6 +165,7 @@ export class AuthService {
 
       return { success: true, user };
     } catch (error) {
+      console.error('OTP verification error:', error);
       return { success: false, error: 'Network error occurred' };
     }
   }

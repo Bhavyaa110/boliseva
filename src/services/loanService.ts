@@ -12,27 +12,38 @@ export class LoanService {
     documentsVerified: boolean;
   }): Promise<{ success: boolean; loanId?: string; error?: string }> {
     try {
-      // First, get user data to verify they exist
+      console.log('Starting loan application for user:', application.userId);
+      
+      // Get user data to verify they exist and get phone number
       const { data: userData, error: userError } = await supabase
         .from('signups')
-        .select('id, phone_no, name')
+        .select('*')
         .eq('id', application.userId)
         .single();
 
       if (userError || !userData) {
+        console.error('User lookup error:', userError);
         return { success: false, error: 'User not found. Please ensure you are logged in.' };
       }
 
-      // Set user context for RLS policies using the correct function name
-      const { error: contextError } = await supabase.rpc('set_user_context', { 
+      console.log('Found user:', userData.name, 'Phone:', userData.phone_no);
+      
+      // Set user context for RLS policies
+      const { data: contextResult, error: contextError } = await supabase.rpc('set_user_context', { 
         phone_number: userData.phone_no 
       });
 
       if (contextError) {
-        console.error('Error setting user context:', contextError);
-        return { success: false, error: 'Authentication error. Please try again.' };
+        console.error('Context setting error:', contextError);
+        return { success: false, error: `Authentication error: ${contextError.message}` };
       }
 
+      console.log('User context set successfully');
+      
+      // Debug: Check context
+      const { data: debugInfo } = await supabase.rpc('debug_user_context');
+      console.log('Debug context info:', debugInfo);
+      
       // Insert loan application
       const { data, error } = await supabase
         .from('loans')
@@ -44,20 +55,21 @@ export class LoanService {
           income: application.income,
           employment: application.employment,
           documents_verified: application.documentsVerified,
-          status: 'pending'
+          status: 'applied'
         })
         .select()
         .single();
 
       if (error) {
         console.error('Loan insertion error:', error);
-        return { success: false, error: error.message };
+        return { success: false, error: `Loan application failed: ${error.message}` };
       }
 
+      console.log('Loan application created successfully:', data.loan_id);
       return { success: true, loanId: data.loan_id };
     } catch (error) {
       console.error('Loan application error:', error);
-      return { success: false, error: 'Network error occurred' };
+      return { success: false, error: `Network error: ${error instanceof Error ? error.message : 'Unknown error'}` };
     }
   }
 

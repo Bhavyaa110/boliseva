@@ -47,14 +47,21 @@ export const Dashboard: React.FC<DashboardProps> = ({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Set user context for RLS policies
-        const { error: contextError } = await supabase.rpc('set_user_context', { 
+        console.log('Setting up dashboard for user:', user.name, 'Phone:', user.phone);
+        
+        // Ensure user context is set for RLS policies
+        const { data: contextResult, error: contextError } = await supabase.rpc('set_user_context', { 
           phone_number: user.phone 
         });
 
         if (contextError) {
           console.error('Error setting user context:', contextError);
+          // Don't fail completely, but log the error
         }
+        
+        // Debug context
+        const { data: debugInfo } = await supabase.rpc('debug_user_context');
+        console.log('Dashboard context info:', debugInfo);
         
         // Fetch user's loans and EMIs
         const userLoans = await LoanService.getLoansByUser(user.id);

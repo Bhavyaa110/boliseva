@@ -125,13 +125,19 @@ const LoanForm: React.FC<LoanFormProps> = ({
     setIsSubmitting(true);
 
     try {
-      // Validate user is properly authenticated
+      console.log('Starting loan submission for user:', userId);
+      
       if (!userId) {
         setError('User authentication required. Please log in again.');
         setIsSubmitting(false);
         return;
       }
 
+      // Ensure user context is set before submission
+      // This should already be set from login, but let's verify
+      const { data: debugInfo } = await supabase.rpc('debug_user_context');
+      console.log('Current context before loan submission:', debugInfo);
+      
       const result = await LoanService.submitApplication({
         userId,
         type: formData.type,
@@ -150,12 +156,14 @@ const LoanForm: React.FC<LoanFormProps> = ({
         await speak(successMessages[language as keyof typeof successMessages] || successMessages.en);
         onComplete();
       } else {
-        const errorMessage = result.error || 'Failed to submit application';
+        console.error('Loan submission failed:', result.error);
+        const errorMessage = result.error || 'Failed to submit loan application';
         setError(errorMessage);
         await speak(`Error: ${errorMessage}`);
       }
     } catch (error) {
-      const errorMessage = 'Network error occurred. Please check your connection and try again.';
+      console.error('Loan submission error:', error);
+      const errorMessage = `Network error: ${error instanceof Error ? error.message : 'Please check your connection and try again.'}`;
       setError(errorMessage);
       await speak(errorMessage);
     } finally {

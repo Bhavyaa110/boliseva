@@ -80,11 +80,18 @@ function App() {
     
     if (result.success) {
       await speak(language === 'hi' ? 'सफलतापूर्वक लॉगिन हो गए' : 'Successfully logged in');
-      // Small delay to ensure user context is properly set
-      setTimeout(() => {
+      // Ensure user context is properly established before proceeding
+      if (result.user) {
+        console.log('User authenticated successfully:', result.user.name);
+        // Additional delay to ensure context is fully established
+        setTimeout(() => {
+          setAppState('dashboard');
+        }, 1000);
+      } else {
         setAppState('dashboard');
-      }, 500);
+      }
     } else {
+      console.error('OTP verification failed:', result.error);
       await speak(result.error || 'OTP verification failed');
     }
   };
