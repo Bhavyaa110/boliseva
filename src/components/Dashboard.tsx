@@ -47,7 +47,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   useEffect(() => {
     const fetchData = async () => {
       // Set user context for RLS policies
-      await supabase.rpc('set_user_context', { phone_number: user.phone });
+      await supabase.rpc('set_config', { parameter: 'app.current_phone', value: user.phone });
       
       const userLoans = await LoanService.getLoansByUser(user.id);
       const userEMIs = await LoanService.getEMIsByUser(user.id);
