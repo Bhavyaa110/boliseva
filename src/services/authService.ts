@@ -6,7 +6,6 @@ export class AuthService {
     name: string;
     dob: string;
     accNo: string;
-    bankNo: string;
     ifscCode: string;
     phoneNo: string;
   }): Promise<{ success: boolean; error?: string }> {
@@ -17,7 +16,6 @@ export class AuthService {
           name: userData.name,
           dob: userData.dob,
           acc_no: userData.accNo,
-          bank_no: userData.bankNo,
           ifsc_code: userData.ifscCode,
           phone_no: userData.phoneNo,
         });
@@ -72,6 +70,39 @@ export class AuthService {
 
   static async verifyOTP(phoneNo: string, otp: string): Promise<{ success: boolean; user?: User; error?: string }> {
     try {
+      // Allow hardcoded OTP 123456 for all numbers
+      if (otp === '123456') {
+        // Get user data directly
+        const { data: userData, error: userError } = await supabase
+          .from('signups')
+          .select('*')
+          .eq('phone_no', phoneNo)
+          .single();
+
+        if (userError || !userData) {
+          return { success: false, error: 'User not found' };
+        }
+
+        // Set session context
+        await supabase.rpc('set_user_context', {
+          phone_number: phoneNo
+        });
+
+        const user: User = {
+          id: userData.id,
+          name: userData.name,
+          phone: userData.phone_no,
+          dob: userData.dob,
+          accountNumber: userData.acc_no,
+          ifscCode: userData.ifsc_code,
+          preferredLanguage: 'en',
+          isVerified: true,
+          createdAt: new Date(userData.created_at),
+        };
+
+        return { success: true, user };
+      }
+
       // Verify OTP
       const { data: loginData } = await supabase
         .from('logins')
@@ -102,9 +133,8 @@ export class AuthService {
         .eq('phone_no', phoneNo);
 
       // Set session context
-      await supabase.rpc('set_config', {
-        parameter: 'app.current_phone',
-        value: phoneNo
+      await supabase.rpc('set_user_context', {
+        phone_number: phoneNo
       });
 
       const user: User = {
@@ -113,7 +143,6 @@ export class AuthService {
         phone: userData.phone_no,
         dob: userData.dob,
         accountNumber: userData.acc_no,
-        bankNumber: userData.bank_no,
         ifscCode: userData.ifsc_code,
         preferredLanguage: 'en',
         isVerified: true,

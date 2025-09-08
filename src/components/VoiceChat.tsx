@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Mic, Volume2, VolumeX, ArrowLeft } from 'lucide-react';
+import { Send, Mic, Volume2, VolumeX, ArrowLeft, Play } from 'lucide-react';
 import { ChatMessage } from '../types';
 import { getTranslation } from '../utils/translations';
 import { useVoice } from '../hooks/useVoice';
@@ -23,6 +23,7 @@ export const VoiceChat: React.FC<VoiceChatProps> = ({ language, onBack, onLoanRe
   ]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { isListening, isSpeaking, isSupported, startListening, speak, stopSpeaking } = useVoice(language);
 
@@ -34,6 +35,16 @@ export const VoiceChat: React.FC<VoiceChatProps> = ({ language, onBack, onLoanRe
     scrollToBottom();
   }, [messages]);
 
+  const handlePlayMessage = async (messageId: string, text: string) => {
+    if (playingMessageId === messageId) {
+      stopSpeaking();
+      setPlayingMessageId(null);
+    } else {
+      setPlayingMessageId(messageId);
+      await speak(text);
+      setPlayingMessageId(null);
+    }
+  };
   const handleSendMessage = async (text: string) => {
     if (!text.trim()) return;
 
@@ -51,7 +62,7 @@ export const VoiceChat: React.FC<VoiceChatProps> = ({ language, onBack, onLoanRe
 
     // Generate AI response
     setTimeout(async () => {
-      const response = AIService.generateResponse(text, { language }, language);
+      const response = await AIService.generateResponse(text, { language }, language);
       
       const botMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
@@ -64,10 +75,6 @@ export const VoiceChat: React.FC<VoiceChatProps> = ({ language, onBack, onLoanRe
       setIsTyping(false);
 
       // Speak the response
-      if (isSupported) {
-        await speak(response);
-      }
-
       // Check if user wants to apply for loan
       if (text.toLowerCase().includes('loan') || text.toLowerCase().includes('apply') || 
           text.includes('ऋण') || text.includes('आवेदन')) {
@@ -76,14 +83,6 @@ export const VoiceChat: React.FC<VoiceChatProps> = ({ language, onBack, onLoanRe
     }, 1000);
   };
 
-  const handleVoiceMessage = async () => {
-    try {
-      const transcript = await startListening();
-      handleSendMessage(transcript);
-    } catch (error) {
-      console.error('Voice input error:', error);
-    }
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,10 +90,17 @@ export const VoiceChat: React.FC<VoiceChatProps> = ({ language, onBack, onLoanRe
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 p-4">
         <div className="flex items-center justify-between">
+          <button
+            onClick={onBack}
+            className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            {getTranslation('back', language)}
+          </button>
           <div>
             <h2 className="text-lg font-semibold text-gray-900">
               {getTranslation('voiceAssistant', language)}
@@ -103,22 +109,14 @@ export const VoiceChat: React.FC<VoiceChatProps> = ({ language, onBack, onLoanRe
               {getTranslation('speakYourRequest', language)}
             </p>
           </div>
-          <div className="flex items-center space-x-2">
+          {isSpeaking && (
             <button
-              onClick={onBack}
-              className="p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+              onClick={stopSpeaking}
+              className="p-2 text-orange-600 hover:bg-orange-50 rounded-full transition-colors"
             >
-              <ArrowLeft className="w-5 h-5" />
+              <VolumeX className="w-5 h-5" />
             </button>
-            {isSpeaking && (
-              <button
-                onClick={stopSpeaking}
-                className="p-2 text-orange-600 hover:bg-orange-50 rounded-full transition-colors"
-              >
-                <VolumeX className="w-5 h-5" />
-              </button>
-            )}
-          </div>
+          )}
         </div>
       </div>
 
@@ -129,27 +127,47 @@ export const VoiceChat: React.FC<VoiceChatProps> = ({ language, onBack, onLoanRe
             key={message.id}
             className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
           >
-            <div
-              className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl ${
-                message.isUser
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-900'
-              }`}
-            >
-              <p className="text-sm">{message.text}</p>
-              <div className="flex items-center justify-between mt-2">
-                <span className="text-xs opacity-70">
-                  {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </span>
-                {message.sentiment && message.isUser && (
-                  <span className={`text-xs px-2 py-1 rounded-full ${
-                    message.sentiment === 'positive' ? 'bg-green-100 text-green-800' :
-                    message.sentiment === 'negative' ? 'bg-red-100 text-red-800' :
-                    'bg-gray-100 text-gray-800'
-                  }`}>
-                    {message.sentiment}
+            <div className="max-w-xs lg:max-w-md">
+              <div
+                className={`px-4 py-3 rounded-2xl cursor-pointer transition-all hover:shadow-md ${
+                  message.isUser
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                }`}
+                onClick={() => !message.isUser && handlePlayMessage(message.id, message.text)}
+              >
+                <div className="flex items-start justify-between">
+                  <p className="text-sm flex-1">{message.text}</p>
+                  {!message.isUser && isSupported && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlePlayMessage(message.id, message.text);
+                      }}
+                      className={`ml-2 p-1 rounded-full transition-colors ${
+                        playingMessageId === message.id
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                      }`}
+                    >
+                      <Play className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+                <div className="flex items-center justify-between mt-2">
+                  <span className="text-xs opacity-70">
+                    {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
-                )}
+                  {message.sentiment && message.isUser && (
+                    <span className={`text-xs px-2 py-1 rounded-full ${
+                      message.sentiment === 'positive' ? 'bg-green-100 text-green-800' :
+                      message.sentiment === 'negative' ? 'bg-red-100 text-red-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {message.sentiment}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -188,7 +206,14 @@ export const VoiceChat: React.FC<VoiceChatProps> = ({ language, onBack, onLoanRe
             <VoiceButton
               isListening={isListening}
               isSpeaking={isSpeaking}
-              onStartListening={handleVoiceMessage}
+              onStartListening={async () => {
+                try {
+                  const transcript = await startListening();
+                  handleSendMessage(transcript);
+                } catch (error) {
+                  console.error('Voice input error:', error);
+                }
+              }}
               onStopSpeaking={stopSpeaking}
               size="md"
             />

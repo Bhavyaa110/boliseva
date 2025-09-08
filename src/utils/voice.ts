@@ -55,12 +55,16 @@ export class VoiceService {
 
   speak(text: string, languageCode?: string): Promise<void> {
     return new Promise((resolve) => {
+      // Cancel any ongoing speech first
+      this.synthesis.cancel();
+      
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = languageCode || this.currentLanguage;
       utterance.rate = 0.9;
       utterance.pitch = 1;
       
       utterance.onend = () => resolve();
+      utterance.onerror = () => resolve();
       
       this.synthesis.speak(utterance);
     });

@@ -15,6 +15,7 @@ import {
 import { User, LoanApplication, EMI } from '../types';
 import { getTranslation } from '../utils/translations';
 import { LoanService } from '../services/loanService';
+import { supabase } from '../lib/supabase';
 import { VoiceButton } from './VoiceButton';
 import { LanguageSwitch } from './LanguageSwitch';
 import { useVoice } from '../hooks/useVoice';
@@ -45,6 +46,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   useEffect(() => {
     const fetchData = async () => {
+      // Set user context for RLS policies
+      await supabase.rpc('set_user_context', { 
+        phone_number: user.phone 
+      });
+      
       const userLoans = await LoanService.getLoansByUser(user.id);
       const userEMIs = await LoanService.getEMIsByUser(user.id);
       setLoans(userLoans);
