@@ -5,6 +5,7 @@ import { VoiceButton } from './VoiceButton';
 import { useVoice } from '../hooks/useVoice';
 import { LoanService } from '../services/loanService';
 import { LOAN_TYPES } from '../utils/constants';
+import { supabase } from '../lib/supabase';
 
 interface LoanFormProps {
   language: string;
