@@ -70,7 +70,7 @@ export class AIService {
     return { risk, score: riskScore };
   }
 
-  static generateResponse(userInput: string, context: any, language: string): string {
+  static generateResponse(userInput: string, language: string): string {
     const responses = {
       en: {
         greeting: "Hello! I'm BoliSeva, your personal loan assistant. I can help you with loan applications, EMI management, and answer questions about financial products. How can I assist you today?",
