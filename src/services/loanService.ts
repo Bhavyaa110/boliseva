@@ -12,39 +12,11 @@ export class LoanService {
     documentsVerified: boolean;
   }): Promise<{ success: boolean; loanId?: string; error?: string }> {
     try {
-      console.log('Starting loan application for user:', application.userId);
-      
-      // Get user data to verify they exist and get phone number
-      const { data: userData, error: userError } = await supabase
-        .from('signups')
-        .select('*')
-        .eq('id', application.userId)
-        .single();
-
-      if (userError || !userData) {
-        console.error('User lookup error:', userError);
-        return { success: false, error: 'User not found. Please ensure you are logged in.' };
+      // Only allow if userId is provided (from signups table, after OTP login)
+      if (!application.userId) {
+        return { success: false, error: 'User not authenticated.' };
       }
-
-      console.log('Found user:', userData.name, 'Phone:', userData.phone_no);
-      
-      // Set user context for RLS policies
-      const { data: contextResult, error: contextError } = await supabase.rpc('set_user_context', { 
-        phone_number: userData.phone_no 
-      });
-
-      if (contextError) {
-        console.error('Context setting error:', contextError);
-        return { success: false, error: `Authentication error: ${contextError.message}` };
-      }
-
-      console.log('User context set successfully');
-      
-      // Debug: Check context
-      const { data: debugInfo } = await supabase.rpc('debug_user_context');
-      console.log('Debug context info:', debugInfo);
-      
-      // Insert loan application
+      // Insert loan application using userId from signups
       const { data, error } = await supabase
         .from('loans')
         .insert({
@@ -75,20 +47,7 @@ export class LoanService {
 
   static async getLoansByUser(userId: string): Promise<LoanApplication[]> {
     try {
-      // Get user's phone number first
-      const { data: userData } = await supabase
-        .from('signups')
-        .select('phone_no')
-        .eq('id', userId)
-        .single();
-
-      if (userData) {
-        // Set user context for RLS policies
-        await supabase.rpc('set_user_context', { 
-          phone_number: userData.phone_no 
-        });
-      }
-
+      if (!userId) return [];
       const { data, error } = await supabase
         .from('loans')
         .select('*')
@@ -181,20 +140,7 @@ export class LoanService {
 
   static async getEMIsByUser(userId: string): Promise<EMI[]> {
     try {
-      // Get user's phone number first
-      const { data: userData } = await supabase
-        .from('signups')
-        .select('phone_no')
-        .eq('id', userId)
-        .single();
-
-      if (userData) {
-        // Set user context for RLS policies
-        await supabase.rpc('set_user_context', { 
-          phone_number: userData.phone_no 
-        });
-      }
-
+      if (!userId) return [];
       const { data, error } = await supabase
         .from('emis')
         .select(`

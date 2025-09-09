@@ -5,7 +5,6 @@ import { VoiceButton } from './VoiceButton';
 import { useVoice } from '../hooks/useVoice';
 import { LoanService } from '../services/loanService';
 import { LOAN_TYPES } from '../utils/constants';
-import { supabase } from '../lib/supabase';
 
 interface LoanFormProps {
   language: string;
@@ -134,11 +133,6 @@ const LoanForm: React.FC<LoanFormProps> = ({
         return;
       }
 
-      // Ensure user context is set before submission
-      // This should already be set from login, but let's verify
-      const { data: debugInfo } = await supabase.rpc('debug_user_context');
-      console.log('Current context before loan submission:', debugInfo);
-      
       const result = await LoanService.submitApplication({
         userId,
         type: formData.type,
@@ -235,7 +229,7 @@ const LoanForm: React.FC<LoanFormProps> = ({
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
-                    <div className="font-medium">{getTranslation(type.id, language)} {getTranslation('loan', language)}</div>
+                    <div className="font-medium">{getTranslation(type.id as 'personal' | 'business' | 'agriculture' | 'education', language)} {getTranslation('loan', language)}</div>
                     <div className="text-xs text-gray-500 mt-1">
                       ₹{type.minAmount.toLocaleString()} - ₹{type.maxAmount.toLocaleString()}
                     </div>
@@ -466,7 +460,7 @@ const LoanForm: React.FC<LoanFormProps> = ({
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-600">{getTranslation('loanType', language)}</p>
-                  <p className="font-medium">{getTranslation(formData.type, language)} {getTranslation('loan', language)}</p>
+                  <p className="font-medium">{getTranslation(formData.type as 'personal' | 'business' | 'agriculture' | 'education', language)} {getTranslation('loan', language)}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">{getTranslation('amount', language)}</p>
