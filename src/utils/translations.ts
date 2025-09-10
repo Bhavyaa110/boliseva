@@ -61,6 +61,10 @@ export const translations = {
     verifyDocuments: "Verify Documents",
     documentVerification: "Document Verification",
     waitingApproval: "Waiting for Bank Approval",
+    aadhaarCard: "Aadhaar Card",
+    panCard: "PAN Card",
+    verifyYourDocuments: "Verify your documents to proceed with loan application",
+    verifyingDocuments: "Verifying documents...",
     
     // Loan Types
     personal: "Personal",
@@ -99,7 +103,7 @@ export const translations = {
   },
   hi: {
     // Common
-    welcome: "BoliSeva में आपका स्वागत है",
+    welcome: "बोलीसेवा में आपका स्वागत है",
     voiceFirstAssistant: "भारत का आवाज-प्रथम ऋण सहायक",
     continue: "जारी रखें",
     back: "वापस",
@@ -116,7 +120,7 @@ export const translations = {
     logout: "लॉगआउट",
     welcomeBack: "वापस आपका स्वागत है",
     payNow: "अभी भुगतान करें",
-    allClear: "सब ठीक है",
+    allClear: "कोई बकाया नहीं",
     
     // Language Selection
     selectLanguage: "अपनी पसंदीदा भाषा चुनें",
@@ -159,6 +163,10 @@ export const translations = {
     verifyDocuments: "दस्तावेज सत्यापित करें",
     documentVerification: "दस्तावेज सत्यापन",
     waitingApproval: "बैंक अनुमोदन की प्रतीक्षा में",
+    aadhaarCard: "आधार कार्ड",
+    panCard: "पैन कार्ड",
+    verifyYourDocuments: "ऋण आवेदन के लिए अपने दस्तावेज़ सत्यापित करें",
+    verifyingDocuments: "दस्तावेज़ सत्यापित किए जा रहे हैं...",
     
     // Loan Types
     personal: "व्यक्तिगत",

@@ -20,7 +20,10 @@ export const AuthForm: React.FC<AuthFormProps> = ({ language, onLogin, onSignup,
 
   const handleVoiceInput = async () => {
     try {
-      await speak('Please tell me your phone number');
+      const prompt = language === 'hi'
+        ? 'कृपया अपना फोन नंबर बताएं'
+        : 'Please tell me your phone number';
+      await speak(prompt);
       const transcript = await startListening();
       
       // Extract numbers from voice input

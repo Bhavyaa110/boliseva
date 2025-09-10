@@ -26,11 +26,21 @@ export const SignupForm: React.FC<SignupFormProps> = ({ language, onBack, onSign
   const handleVoiceInput = async (field: keyof typeof formData) => {
     try {
       const fieldPrompts = {
-        name: 'Please tell me your full name',
-        dob: 'Please tell me your date of birth in DD MM YYYY format',
-        accNo: 'Please tell me your account number',
-        ifscCode: 'Please tell me your IFSC code',
-        phoneNo: 'Please tell me your phone number',
+        name: language === 'hi'
+          ? 'कृपया अपना पूरा नाम बताएं'
+          : 'Please tell me your full name',
+        dob: language === 'hi'
+          ? 'कृपया अपनी जन्म तिथि DD MM YYYY प्रारूप में बताएं'
+          : 'Please tell me your date of birth in DD MM YYYY format',
+        accNo: language === 'hi'
+          ? 'कृपया अपना खाता नंबर बताएं'
+          : 'Please tell me your account number',
+        ifscCode: language === 'hi'
+          ? 'कृपया अपना IFSC कोड बताएं'
+          : 'Please tell me your IFSC code',
+        phoneNo: language === 'hi'
+          ? 'कृपया अपना फोन नंबर बताएं'
+          : 'Please tell me your phone number',
       };
 
       await speak(fieldPrompts[field]);

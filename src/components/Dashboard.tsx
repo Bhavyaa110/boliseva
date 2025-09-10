@@ -142,8 +142,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-blue-900">BoliSeva</h1>
-              <p className="text-gray-600">{getTranslation('welcomeBack', language)}, {user.name}</p>
+              <h1 className="text-2xl font-bold text-blue-900">{language === 'hi' ? 'बोलीसेवा' : 'BoliSeva'}</h1>
+              <p className="text-gray-600">
+                {language === 'hi'
+                  ? `वापस आपका स्वागत है, ${user.name}`
+                  : `${getTranslation('welcomeBack', language)}, ${user.name}`}
+              </p>
             </div>
             <div className="flex items-center space-x-3">
               <LanguageSwitch 
@@ -215,7 +219,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <div className="ml-4">
                 <p className="text-sm text-gray-600">{getTranslation('nextEmi', language)}</p>
                 <p className="text-lg font-bold text-gray-900">
-                  {upcomingEMIs.length > 0 ? `₹${upcomingEMIs[0].amount.toLocaleString()}` : 'None'}
+                  {upcomingEMIs.length > 0 ? `₹${upcomingEMIs[0].amount.toLocaleString()}` : (language === 'hi' ? 'कोई नहीं' : 'None')}
                 </p>
                 {upcomingEMIs.length > 0 && (
                   <p className="text-xs text-gray-500">
@@ -238,7 +242,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <div className="ml-4">
                 <p className="text-sm text-gray-600">{getTranslation('paymentStatus', language)}</p>
                 <p className="text-lg font-bold text-gray-900">
-                  {overdueEMIs.length > 0 ? `${overdueEMIs.length} ${getTranslation('overdue', language)}` : getTranslation('allClear', language)}
+                  {overdueEMIs.length > 0 ? `${overdueEMIs.length} ${getTranslation('overdue', language)}` : (language === 'hi' ? 'कोई बकाया नहीं' : getTranslation('allClear', language))}
                 </p>
               </div>
             </div>

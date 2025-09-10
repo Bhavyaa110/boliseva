@@ -106,11 +106,11 @@ const LoanForm: React.FC<LoanFormProps> = ({
 
   const getInterestRate = (loanType: string): number => {
     switch (loanType) {
-      case 'personal': return 15;
-      case 'business': return 16;
+      case 'personal': return 10;
+      case 'business': return 12;
       case 'agriculture': return 9;
-      case 'education': return 12;
-      default: return 15;
+      case 'education': return 8;
+      default: return 12;
     }
   };
 
@@ -200,7 +200,11 @@ const LoanForm: React.FC<LoanFormProps> = ({
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
             {getTranslation('applyForLoan', language)}
           </h2>
-          <p className="text-gray-600">Complete your loan application in 3 simple steps</p>
+          <p className="text-gray-600">
+            {language === 'hi'
+              ? '3 आसान चरणों में अपना ऋण आवेदन पूरा करें'
+              : 'Complete your loan application in 3 simple steps'}
+          </p>
         </div>
 
         {error && (
@@ -279,20 +283,20 @@ const LoanForm: React.FC<LoanFormProps> = ({
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">
-                Loan Tenure (Months)
+                {language === 'hi' ? 'ऋण अवधि (महीने)' : 'Loan Tenure (Months)'}
               </label>
               <select
                 value={formData.tenure}
                 onChange={(e) => setFormData(prev => ({ ...prev, tenure: e.target.value }))}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="6">6 months</option>
-                <option value="12">12 months</option>
-                <option value="18">18 months</option>
-                <option value="24">24 months</option>
-                <option value="36">36 months</option>
-                <option value="48">48 months</option>
-                <option value="60">60 months</option>
+                <option value="6">{language === 'hi' ? '6 महीने' : '6 months'}</option>
+                <option value="12">{language === 'hi' ? '12 महीने' : '12 months'}</option>
+                <option value="18">{language === 'hi' ? '18 महीने' : '18 months'}</option>
+                <option value="24">{language === 'hi' ? '24 महीने' : '24 months'}</option>
+                <option value="36">{language === 'hi' ? '36 महीने' : '36 months'}</option>
+                <option value="48">{language === 'hi' ? '48 महीने' : '48 months'}</option>
+                <option value="60">{language === 'hi' ? '60 महीने' : '60 months'}</option>
               </select>
             </div>
 
@@ -301,29 +305,29 @@ const LoanForm: React.FC<LoanFormProps> = ({
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <h3 className="font-medium text-blue-900 flex items-center mb-4">
                   <Calculator className="w-4 h-4 mr-2" />
-                  EMI Calculator
+                  {language === 'hi' ? 'EMI कैलकुलेटर' : 'EMI Calculator'}
                 </h3>
                 <div className="text-center">
-                  <p className="text-sm text-blue-700 mb-1">Monthly EMI</p>
+                  <p className="text-sm text-blue-700 mb-1">{language === 'hi' ? 'मासिक EMI' : 'Monthly EMI'}</p>
                   <p className="text-3xl font-bold text-blue-900 mb-2">
                     ₹{calculatedEMI ? calculatedEMI.toLocaleString() : '0'}
                   </p>
                   {calculatedEMI && (
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-blue-600">Principal:</span>
+                        <span className="text-blue-600">{language === 'hi' ? 'मूलधन:' : 'Principal:'}</span>
                         <span className="font-medium">₹{parseInt(formData.amount).toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-blue-600">Total Interest:</span>
+                        <span className="text-blue-600">{language === 'hi' ? 'कुल ब्याज:' : 'Total Interest:'}</span>
                         <span className="font-medium">₹{(calculatedEMI * parseInt(formData.tenure) - parseInt(formData.amount)).toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between border-t pt-2">
-                        <span className="text-blue-600">Total Amount:</span>
+                        <span className="text-blue-600">{language === 'hi' ? 'कुल राशि:' : 'Total Amount:'}</span>
                         <span className="font-bold">₹{(calculatedEMI * parseInt(formData.tenure)).toLocaleString()}</span>
                       </div>
                       <div className="text-xs text-blue-600 mt-2">
-                        @ {getInterestRate(formData.type)}% annual interest rate
+                        @ {getInterestRate(formData.type)}% {language === 'hi' ? 'वार्षिक ब्याज दर' : 'annual interest rate'}
                       </div>
                     </div>
                   )}
@@ -354,7 +358,7 @@ const LoanForm: React.FC<LoanFormProps> = ({
                   value={formData.purpose}
                   onChange={(e) => setFormData(prev => ({ ...prev, purpose: e.target.value }))}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Describe the purpose of your loan"
+                  placeholder={language === 'hi' ? 'अपने ऋण का उद्देश्य लिखें' : 'Describe the purpose of your loan'}
                   rows={3}
                   required
                 />
@@ -383,7 +387,7 @@ const LoanForm: React.FC<LoanFormProps> = ({
                   value={formData.income}
                   onChange={(e) => setFormData(prev => ({ ...prev, income: e.target.value }))}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-12"
-                  placeholder="Enter your monthly income"
+                  placeholder={language === 'hi' ? 'अपनी मासिक आय दर्ज करें' : 'Enter your monthly income'}
                   required
                 />
                 {isSupported && (
@@ -411,12 +415,12 @@ const LoanForm: React.FC<LoanFormProps> = ({
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
               >
-                <option value="">Select employment type</option>
-                <option value="salaried">Salaried</option>
-                <option value="self_employed">Self Employed</option>
-                <option value="business">Business Owner</option>
-                <option value="farmer">Farmer</option>
-                <option value="daily_wage">Daily Wage</option>
+                <option value="">{language === 'hi' ? 'रोजगार प्रकार चुनें' : 'Select employment type'}</option>
+                <option value="salaried">{language === 'hi' ? 'वेतनभोगी' : 'Salaried'}</option>
+                <option value="self_employed">{language === 'hi' ? 'स्व-रोजगार' : 'Self Employed'}</option>
+                <option value="business">{language === 'hi' ? 'व्यवसायी' : 'Business Owner'}</option>
+                <option value="farmer">{language === 'hi' ? 'किसान' : 'Farmer'}</option>
+                <option value="daily_wage">{language === 'hi' ? 'दैनिक मजदूरी' : 'Daily Wage'}</option>
               </select>
               {isSupported && (
                 <div className="mt-3 flex justify-center">
@@ -467,40 +471,39 @@ const LoanForm: React.FC<LoanFormProps> = ({
                   <p className="font-medium">₹{parseInt(formData.amount).toLocaleString()}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Tenure</p>
-                  <p className="font-medium">{formData.tenure} months</p>
+                  <p className="text-sm text-gray-600">{language === 'hi' ? 'अवधि' : 'Tenure'}</p>
+                  <p className="font-medium">{formData.tenure} {language === 'hi' ? 'महीने' : 'months'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">{getTranslation('monthlyIncome', language)}</p>
                   <p className="font-medium">₹{parseInt(formData.income).toLocaleString()}</p>
                 </div>
+                <div>
+                  <p className="text-sm text-gray-600">{getTranslation('purpose', language)}</p>
+                  <p className="font-medium">{formData.purpose}</p>
+                </div>
               </div>
               
-              <div>
-                <p className="text-sm text-gray-600">{getTranslation('purpose', language)}</p>
-                <p className="font-medium">{formData.purpose}</p>
-              </div>
-
               {calculatedEMI && (
                 <div className="border-t pt-4">
                   <div className="text-center bg-blue-100 rounded-lg p-4">
-                    <p className="text-sm text-blue-700 mb-1">Estimated Monthly EMI</p>
+                    <p className="text-sm text-blue-700 mb-1">{language === 'hi' ? 'अनुमानित मासिक EMI' : 'Estimated Monthly EMI'}</p>
                     <p className="text-3xl font-bold text-blue-900">₹{calculatedEMI.toLocaleString()}</p>
                     <div className="space-y-1 text-sm mt-3">
                       <div className="flex justify-between">
-                        <span className="text-blue-600">Principal:</span>
+                        <span className="text-blue-600">{language === 'hi' ? 'मूलधन:' : 'Principal:'}</span>
                         <span className="font-medium">₹{parseInt(formData.amount).toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-blue-600">Total Interest:</span>
+                        <span className="text-blue-600">{language === 'hi' ? 'कुल ब्याज:' : 'Total Interest:'}</span>
                         <span className="font-medium">₹{(calculatedEMI * parseInt(formData.tenure) - parseInt(formData.amount)).toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between border-t pt-1">
-                        <span className="text-blue-600">Total Amount:</span>
+                        <span className="text-blue-600">{language === 'hi' ? 'कुल राशि:' : 'Total Amount:'}</span>
                         <span className="font-bold">₹{(calculatedEMI * parseInt(formData.tenure)).toLocaleString()}</span>
                       </div>
                       <div className="text-xs text-blue-600 mt-2">
-                        @ {getInterestRate(formData.type)}% annual interest rate
+                        @ {getInterestRate(formData.type)}% {language === 'hi' ? 'वार्षिक ब्याज दर' : 'annual interest rate'}
                       </div>
                     </div>
                   </div>

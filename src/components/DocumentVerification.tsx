@@ -32,8 +32,12 @@ export const DocumentVerification: React.FC<DocumentVerificationProps> = ({
   const handleVoiceInput = async (field: 'aadhaar' | 'pan') => {
     try {
       const prompts = {
-        aadhaar: 'Please tell me your 12-digit Aadhaar number',
-        pan: 'Please tell me your 10-character PAN number',
+        aadhaar: language === 'hi'
+          ? 'कृपया अपना 12-अंकों का आधार नंबर बताएं'
+          : 'Please tell me your 12-digit Aadhaar number',
+        pan: language === 'hi'
+          ? 'कृपया अपना 10-अक्षरों का पैन नंबर बताएं'
+          : 'Please tell me your 10-character PAN number',
       };
 
       await speak(prompts[field]);
@@ -120,7 +124,7 @@ export const DocumentVerification: React.FC<DocumentVerificationProps> = ({
           <h2 className="text-xl font-bold text-gray-900 mb-2">
             {getTranslation('documentVerification', language)}
           </h2>
-          <p className="text-gray-600">Verify your documents to proceed with loan application</p>
+          <p className="text-gray-600">{getTranslation('verifyYourDocuments', language)}</p>
         </div>
 
         <div className="space-y-6">
@@ -129,7 +133,7 @@ export const DocumentVerification: React.FC<DocumentVerificationProps> = ({
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center">
                 {getStatusIcon(documents.aadhaar)}
-                <span className="ml-2 font-medium">Aadhaar Card</span>
+                <span className="ml-2 font-medium">{getTranslation('aadhaarCard', language)}</span>
               </div>
               {documents.aadhaar === 'pending' && (
                 <button
@@ -137,7 +141,7 @@ export const DocumentVerification: React.FC<DocumentVerificationProps> = ({
                   disabled={!aadhaarNumber || aadhaarNumber.length !== 12 || isVerifying}
                   className="text-blue-600 hover:text-blue-700 text-sm font-medium disabled:opacity-50"
                 >
-                  Verify
+                  {getTranslation('verify', language)}
                 </button>
               )}
             </div>
@@ -172,7 +176,7 @@ export const DocumentVerification: React.FC<DocumentVerificationProps> = ({
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center">
                 {getStatusIcon(documents.pan)}
-                <span className="ml-2 font-medium">PAN Card</span>
+                <span className="ml-2 font-medium">{getTranslation('panCard', language)}</span>
               </div>
               {documents.pan === 'pending' && (
                 <button
@@ -180,7 +184,7 @@ export const DocumentVerification: React.FC<DocumentVerificationProps> = ({
                   disabled={!panNumber || panNumber.length !== 10 || isVerifying}
                   className="text-blue-600 hover:text-blue-700 text-sm font-medium disabled:opacity-50"
                 >
-                  Verify
+                  {getTranslation('verify', language)}
                 </button>
               )}
             </div>
@@ -228,7 +232,7 @@ export const DocumentVerification: React.FC<DocumentVerificationProps> = ({
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 text-center">
               <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-gray-600">Verifying documents...</p>
+              <p className="text-gray-600">{getTranslation('verifyingDocuments', language)}</p>
             </div>
           </div>
         )}
