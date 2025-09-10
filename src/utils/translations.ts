@@ -100,6 +100,7 @@ export const translations = {
     paid: "Paid",
     unpaid: "Unpaid",
     overdue: "Overdue",
+    fillField: "Please fill out this field.",
   },
   hi: {
     // Common
@@ -202,6 +203,7 @@ export const translations = {
     paid: "भुगतान किया गया",
     unpaid: "अवैतनिक",
     overdue: "अतिदेय",
+    fillField: "कृपया यह स्थान भरें।",
   }
 };
 

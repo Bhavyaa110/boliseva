@@ -42,10 +42,9 @@ export const AuthForm: React.FC<AuthFormProps> = ({ language, onLogin, onSignup,
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    
+    setError("");
     if (phoneNo.trim().length !== 10) {
-      setError('Please enter a valid 10-digit phone number');
+      setError(getTranslation('fillField', language));
       return;
     }
 
@@ -109,7 +108,6 @@ export const AuthForm: React.FC<AuthFormProps> = ({ language, onLogin, onSignup,
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-12"
                 placeholder="9876543210"
                 maxLength={10}
-                required
               />
               {isSupported && (
                 <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
