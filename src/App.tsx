@@ -45,12 +45,14 @@ function App() {
     
     // Welcome message in selected language
     if (selectedLanguage === 'hi') {
-      await speak('BoliSeva में आपका स्वागत है। आइए शुरू करते हैं।');
+      await speak('बोलीसेवा में आपका स्वागत है। आइए शुरू करते हैं।');
     } else {
       await speak('Welcome to BoliSeva. Let\'s get started.');
     }
-    
-    setAppState(user ? 'dashboard' : 'auth');
+    // Delay state change to ensure language is set before rendering login
+    setTimeout(() => {
+      setAppState(user ? 'dashboard' : 'auth');
+    }, 400);
   };
 
   const handleLanguageChange = (newLanguage: string) => {

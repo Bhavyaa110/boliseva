@@ -125,7 +125,7 @@ export const OTPVerification: React.FC<OTPVerificationProps> = ({
         {/* Demo OTP Note */}
         <div className="mt-6 p-4 bg-amber-50 rounded-lg border border-amber-200">
           <p className="text-amber-800 text-xs text-center">
-            📱 Demo: Use OTP "123456" for testing (works for all numbers)
+            📱 Demo: Use OTP "123456" for testing.
           </p>
         </div>
       </div>
