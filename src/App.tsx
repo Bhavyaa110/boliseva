@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { LanguageSelector } from './components/LanguageSelector';
 import { AuthForm } from './components/AuthForm';
 import { SignupForm } from './components/SignupForm';
@@ -68,12 +68,12 @@ function App() {
       setPhoneNumber(phoneNo);
       setAppState('otp-verification');
     } else {
-      await speak(result.error || 'Login failed');
+      await speak(language === 'hi' ? (result.error === 'Login failed' ? 'लॉगिन विफल रहा' : result.error || 'लॉगिन विफल रहा') : result.error || 'Login failed');
     }
   };
 
   const handleSignupComplete = async () => {
-    await speak('Account created successfully! Please login with your phone number.');
+    await speak(language === 'hi' ? 'खाता सफलतापूर्वक बनाया गया! कृपया अपने फोन नंबर से लॉगिन करें।' : 'Account created successfully! Please login with your phone number.');
     setAppState('auth');
   };
 
@@ -114,7 +114,7 @@ function App() {
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">{language === 'hi' ? 'लोड हो रहा है...' : 'Loading...'}</p>
         </div>
       </div>
     );

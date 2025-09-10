@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { Globe, ChevronDown } from 'lucide-react';
 import { LANGUAGES } from '../utils/constants';
-import { getTranslation } from '../utils/translations';
-
 interface LanguageSwitchProps {
   currentLanguage: string;
   onLanguageChange: (language: string) => void;

@@ -20,10 +20,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ language, onLogin, onSignup,
 
   const handleVoiceInput = async () => {
     try {
-      const prompt = language === 'hi'
-        ? 'कृपया अपना फोन नंबर बताएं'
-        : 'Please tell me your phone number';
-      await speak(prompt);
+      await speak(language === 'hi' ? 'कृपया अपना फोन नंबर बताएं' : 'Please tell me your phone number');
       const transcript = await startListening();
       
       // Extract numbers from voice input
@@ -34,7 +31,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ language, onLogin, onSignup,
         setPhoneNo(transcript);
       }
       
-      await speak(`Got it: ${transcript}`);
+      await speak(language === 'hi' ? `समझ गया: ${transcript}` : `Got it: ${transcript}`);
     } catch (error) {
       console.error('Voice input error:', error);
     }
@@ -52,7 +49,10 @@ export const AuthForm: React.FC<AuthFormProps> = ({ language, onLogin, onSignup,
       // Check if user exists before sending OTP
       const userExists = await AuthService.checkUserExists(phoneNo);
       if (!userExists) {
-        setError('Phone number not registered. Please sign up first.');
+        setError(language === 'hi' ? 'फोन नंबर पंजीकृत नहीं है। कृपया पहले साइन अप करें।' : 'Phone number not registered. Please sign up first.');
+        if (isSupported) {
+          await speak(language === 'hi' ? 'फोन नंबर पंजीकृत नहीं है। कृपया पहले साइन अप करें।' : 'Phone number not registered. Please sign up first.');
+        }
         return;
       }
       onLogin(phoneNo);

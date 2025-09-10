@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, Upload, CheckCircle2, AlertCircle, ArrowRight, ArrowLeft } from 'lucide-react';
+import { FileText, CheckCircle2, AlertCircle, ArrowRight, ArrowLeft } from 'lucide-react';
 import { getTranslation } from '../utils/translations';
 import { VoiceButton } from './VoiceButton';
 import { useVoice } from '../hooks/useVoice';
@@ -39,18 +39,19 @@ export const DocumentVerification: React.FC<DocumentVerificationProps> = ({
           ? 'कृपया अपना 10-अक्षरों का पैन नंबर बताएं'
           : 'Please tell me your 10-character PAN number',
       };
-
       await speak(prompts[field]);
       const transcript = await startListening();
-      
       if (field === 'aadhaar') {
         const numbers = transcript.replace(/\D/g, '');
         setAadhaarNumber(numbers);
       } else {
         setPanNumber(transcript.toUpperCase().replace(/[^A-Z0-9]/g, ''));
       }
-      
-      await speak(`Got it: ${transcript}`);
+      if (language === 'hi') {
+        await speak(`समझ गया: ${transcript}`);
+      } else {
+        await speak(`Got it: ${transcript}`);
+      }
     } catch (error) {
       console.error('Voice input error:', error);
     }
@@ -58,27 +59,28 @@ export const DocumentVerification: React.FC<DocumentVerificationProps> = ({
 
   const verifyDocument = async (type: 'aadhaar' | 'pan' | 'kyc') => {
     setIsVerifying(true);
-    
     // Simulate verification process
     await new Promise(resolve => setTimeout(resolve, 2000));
-    
     let isValid = false;
-    
     if (type === 'aadhaar') {
       isValid = aadhaarNumber.length === 12 && /^\d+$/.test(aadhaarNumber);
     } else if (type === 'pan') {
       isValid = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(panNumber);
     }
-    
     setDocuments(prev => ({
       ...prev,
       [type]: isValid ? 'verified' : 'rejected'
     }));
-    
-    const message = isValid ? 
-      `${type.toUpperCase()} verification successful` : 
-      `${type.toUpperCase()} verification failed. Please check your details.`;
-    
+    let message = '';
+    if (isValid) {
+      message = language === 'hi'
+        ? `${type.toUpperCase()} सत्यापन सफल रहा`
+        : `${type.toUpperCase()} verification successful`;
+    } else {
+      message = language === 'hi'
+        ? `${type.toUpperCase()} सत्यापन विफल रहा। कृपया अपने विवरण जांचें।`
+        : `${type.toUpperCase()} verification failed. Please check your details.`;
+    }
     await speak(message);
     setIsVerifying(false);
   };

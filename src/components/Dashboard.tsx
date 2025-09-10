@@ -3,11 +3,9 @@ import {
   CreditCard, 
   Calendar, 
   AlertCircle, 
-  CheckCircle2, 
-  Clock, 
+  CheckCircle2,  
   Plus,
   TrendingUp,
-  Phone,
   MessageCircle,
   Wallet,
   Bell
@@ -60,7 +58,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         );
         
         if (overdueEMIs.length > 0) {
-          setNotifications([`You have ${overdueEMIs.length} overdue EMI(s)`]);
+          setNotifications([language === 'hi' ? `आपकी ${overdueEMIs.length} EMI(एं) बकाया हैं` : `You have ${overdueEMIs.length} overdue EMI(s)`]);
           await LoanService.sendEMIReminders();
         }
       } catch (error) {
@@ -73,34 +71,39 @@ export const Dashboard: React.FC<DashboardProps> = ({
     }
   }, [user.id, user.phone]);
 
-  // Remove the duplicate loan/EMI fetching code
-  const fetchData = async () => {
-    try {
-      const userLoans = await LoanService.getLoansByUser(user.id);
-      const userEMIs = await LoanService.getEMIsByUser(user.id);
-      setLoans(userLoans);
-      setEMIs(userEMIs);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
-  };
-
   const upcomingEMIs = emis.filter(emi => emi.status === 'unpaid').slice(0, 3);
   const overdueEMIs = emis.filter(emi => emi.status === 'overdue');
 
   const handleVoiceCommand = async () => {
     try {
-      await speak('How can I help you today?');
+      if (language === 'hi') {
+        await speak('मैं आपकी किस प्रकार सहायता कर सकता हूँ?');
+      } else {
+        await speak('How can I help you today?');
+      }
       const command = await startListening();
-      
-      if (command.toLowerCase().includes('loan') || command.includes('ऋण')) {
+      if (
+        command.toLowerCase().includes('loan') ||
+        command.includes('ऋण')
+      ) {
         onNewLoan();
-      } else if (command.toLowerCase().includes('emi') || command.toLowerCase().includes('payment')) {
+      } else if (
+        command.toLowerCase().includes('emi') ||
+        command.toLowerCase().includes('payment')
+      ) {
         setActiveTab('emis');
-      } else if (command.toLowerCase().includes('chat') || command.toLowerCase().includes('help')) {
+      } else if (
+        command.toLowerCase().includes('chat') ||
+        command.toLowerCase().includes('help') ||
+        command.includes('सहायता')
+      ) {
         onOpenChat();
       } else {
-        await speak('I can help you apply for a new loan, check your EMIs, or chat about your loans. What would you like to do?');
+        if (language === 'hi') {
+          await speak('मैं आपकी ऋण आवेदन, EMI या सहायता में मदद कर सकता हूँ। कृपया बताएं, आप क्या करना चाहते हैं?');
+        } else {
+          await speak('I can help you apply for a new loan, check your EMIs, or chat about your loans. What would you like to do?');
+        }
       }
     } catch (error) {
       console.error('Voice command error:', error);
@@ -111,10 +114,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
     const result = await LoanService.payEMI(emiId);
     if (result.success) {
       const userEMIs = await LoanService.getEMIsByUser(user.id);
-    setEMIs(userEMIs);
-    await speak('EMI payment successful!');
+      setEMIs(userEMIs);
+      if (language === 'hi') {
+        await speak('EMI भुगतान सफल रहा!');
+      } else {
+        await speak('EMI payment successful!');
+      }
     } else {
-      await speak('EMI payment failed. Please try again.');
+      if (language === 'hi') {
+        await speak('EMI भुगतान विफल रहा। कृपया पुनः प्रयास करें।');
+      } else {
+        await speak('EMI payment failed. Please try again.');
+      }
     }
   };
 

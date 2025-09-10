@@ -152,13 +152,15 @@ const LoanForm: React.FC<LoanFormProps> = ({
         onComplete();
       } else {
         console.error('Loan submission failed:', result.error);
-        const errorMessage = result.error || 'Failed to submit loan application';
+        const errorMessage = result.error || (language === 'hi' ? 'ऋण आवेदन जमा करने में विफल।' : 'Failed to submit loan application');
         setError(errorMessage);
-        await speak(`Error: ${errorMessage}`);
+        await speak(language === 'hi' ? `त्रुटि: ${errorMessage}` : `Error: ${errorMessage}`);
       }
     } catch (error) {
       console.error('Loan submission error:', error);
-      const errorMessage = `Network error: ${error instanceof Error ? error.message : 'Please check your connection and try again.'}`;
+      const errorMessage = language === 'hi'
+        ? `नेटवर्क त्रुटि: ${error instanceof Error ? error.message : 'कृपया अपना कनेक्शन जांचें और पुनः प्रयास करें।'}`
+        : `Network error: ${error instanceof Error ? error.message : 'Please check your connection and try again.'}`;
       setError(errorMessage);
       await speak(errorMessage);
     } finally {
@@ -264,7 +266,7 @@ const LoanForm: React.FC<LoanFormProps> = ({
                   value={formData.amount}
                   onChange={(e) => setFormData(prev => ({ ...prev, amount: e.target.value }))}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-12"
-                  placeholder="Enter loan amount"
+                  placeholder={language === 'hi' ? 'ऋण राशि दर्ज करें' : 'Enter loan amount'}
                   required
                 />
                 {isSupported && (

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Mic, Volume2, VolumeX, ArrowLeft, Play } from 'lucide-react';
+import { Send, VolumeX, ArrowLeft, Play } from 'lucide-react';
 import { ChatMessage } from '../types';
 import { getTranslation } from '../utils/translations';
 import { useVoice } from '../hooks/useVoice';
@@ -62,8 +62,7 @@ export const VoiceChat: React.FC<VoiceChatProps> = ({ language, onBack, onLoanRe
 
     // Generate AI response
     setTimeout(async () => {
-      const response = await AIService.generateResponse(text, { language }, language);
-      
+      const response = await AIService.generateResponse(text, language);      
       const botMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         text: response,
@@ -79,6 +78,10 @@ export const VoiceChat: React.FC<VoiceChatProps> = ({ language, onBack, onLoanRe
       if (text.toLowerCase().includes('loan') || text.toLowerCase().includes('apply') || 
           text.includes('ऋण') || text.includes('आवेदन')) {
         onLoanRequest?.();
+      }
+
+      if (isSupported) {
+        await speak(response);
       }
     }, 1000);
   };
@@ -196,7 +199,7 @@ export const VoiceChat: React.FC<VoiceChatProps> = ({ language, onBack, onLoanRe
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              placeholder={isListening ? getTranslation('listening', language) : "Type your message..."}
+              placeholder={isListening ? getTranslation('listening', language) : (language === 'hi' ? 'अपना संदेश लिखें...' : 'Type your message...')}
               className="w-full px-4 py-3 border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-12"
               disabled={isListening}
             />

@@ -60,7 +60,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ language, onBack, onSign
         setFormData(prev => ({ ...prev, [field]: transcript }));
       }
       
-      await speak(`Got it: ${transcript}`);
+      await speak(language === 'hi' ? `समझ गया: ${transcript}` : `Got it: ${transcript}`);
     } catch (error) {
       console.error('Voice input error:', error);
     }
@@ -75,11 +75,19 @@ export const SignupForm: React.FC<SignupFormProps> = ({ language, onBack, onSign
       const result = await AuthService.signup(formData);
       
       if (result.success) {
-        await speak('Account created successfully! Please login with your phone number.');
+        if (language === 'hi') {
+          await speak('खाता सफलतापूर्वक बनाया गया! कृपया अपने फोन नंबर से लॉगिन करें।');
+        } else {
+          await speak('Account created successfully! Please login with your phone number.');
+        }
         onSignupComplete();
       } else {
         setError(result.error || 'Signup failed');
-        await speak('There was an error creating your account. Please try again.');
+        if (language === 'hi') {
+          await speak('आपका खाता बनाने में त्रुटि हुई। कृपया पुनः प्रयास करें।');
+        } else {
+          await speak('There was an error creating your account. Please try again.');
+        }
       }
     } catch (error) {
       setError('Network error occurred');
