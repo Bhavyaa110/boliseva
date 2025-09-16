@@ -72,8 +72,7 @@ function App() {
     }
   };
 
-  const handleSignupComplete = async () => {
-    await speak(language === 'hi' ? 'खाता सफलतापूर्वक बनाया गया! कृपया अपने फोन नंबर से लॉगिन करें।' : 'Account created successfully! Please login with your phone number.');
+  const handleSignupComplete = () => {
     setAppState('auth');
   };
 
@@ -98,7 +97,6 @@ function App() {
   };
 
   const handleLoanComplete = async () => {
-    await speak(language === 'hi' ? 'आपका ऋण आवेदन सफलतापूर्वक जमा हो गया' : 'Your loan application has been submitted successfully');
     setAppState('dashboard');
   };
 

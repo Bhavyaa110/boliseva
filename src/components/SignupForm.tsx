@@ -66,35 +66,41 @@ export const SignupForm: React.FC<SignupFormProps> = ({ language, onBack, onSign
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setIsSubmitting(true);
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setError('');
+  setIsSubmitting(true);
 
-    try {
-      const result = await AuthService.signup(formData);
+  try {
+    const result = await AuthService.signup(formData);
+    
+    if (result.success) {
+      const message = language === 'hi'
+        ? 'खाता सफलतापूर्वक बनाया गया! कृपया अपने फोन नंबर से लॉगिन करें।'
+        : 'Account created successfully! Please login with your phone number.';
       
-      if (result.success) {
-        if (language === 'hi') {
-          await speak('खाता सफलतापूर्वक बनाया गया! कृपया अपने फोन नंबर से लॉगिन करें।');
-        } else {
-          await speak('Account created successfully! Please login with your phone number.');
-        }
-        onSignupComplete();
-      } else {
-        setError(result.error || 'Signup failed');
-        if (language === 'hi') {
-          await speak('आपका खाता बनाने में त्रुटि हुई। कृपया पुनः प्रयास करें।');
-        } else {
-          await speak('There was an error creating your account. Please try again.');
-        }
-      }
-    } catch (error) {
-      setError('Network error occurred');
-    } finally {
-      setIsSubmitting(false);
+      await speak(message);
+      onSignupComplete();
+    } else {
+      const errorMessage = result.error || 'Signup failed';
+      setError(errorMessage);
+      
+      const spokenError = language === 'hi'
+        ? 'आपका खाता बनाने में त्रुटि हुई। कृपया पुनः प्रयास करें।'
+        : 'There was an error creating your account. Please try again.';
+      
+      await speak(spokenError);
     }
-  };
+  } catch (error) {
+    setError('Network error occurred');
+    const networkError = language === 'hi'
+      ? 'नेटवर्क त्रुटि हुई, कृपया पुनः प्रयास करें।'
+      : 'Network error occurred, please try again.';
+    await speak(networkError);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const isFormValid = Object.values(formData).every(value => value.trim() !== '');
 
@@ -140,6 +146,14 @@ export const SignupForm: React.FC<SignupFormProps> = ({ language, onBack, onSign
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                onInvalid={e => {
+                  const input = e.target as HTMLInputElement;
+                  input.setCustomValidity(language === 'hi' ? 'कृपया यह फ़ील्ड भरें' : 'Please fill out this field.');
+                }}
+                onInput={e => {
+                  const input = e.target as HTMLInputElement;
+                  input.setCustomValidity('');
+                }}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-12"
                 placeholder={language === 'hi' ? 'अपना पूरा नाम दर्ज करें' : 'Enter your full name'}
                 required
@@ -169,6 +183,14 @@ export const SignupForm: React.FC<SignupFormProps> = ({ language, onBack, onSign
                 type="date"
                 value={formData.dob}
                 onChange={(e) => setFormData(prev => ({ ...prev, dob: e.target.value }))}
+                onInvalid={e => {
+                  const input = e.target as HTMLInputElement;
+                  input.setCustomValidity(language === 'hi' ? 'कृपया यह फ़ील्ड भरें' : 'Please fill out this field.');
+                }}
+                onInput={e => {
+                  const input = e.target as HTMLInputElement;
+                  input.setCustomValidity('');
+                }}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-12"
                 required
               />
@@ -197,6 +219,14 @@ export const SignupForm: React.FC<SignupFormProps> = ({ language, onBack, onSign
                 type="text"
                 value={formData.accNo}
                 onChange={(e) => setFormData(prev => ({ ...prev, accNo: e.target.value }))}
+                onInvalid={e => {
+                  const input = e.target as HTMLInputElement;
+                  input.setCustomValidity(language === 'hi' ? 'कृपया यह फ़ील्ड भरें' : 'Please fill out this field.');
+                }}
+                onInput={e => {
+                  const input = e.target as HTMLInputElement;
+                  input.setCustomValidity('');
+                }}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-12"
                 placeholder="1234567890123.."
                 required
@@ -226,6 +256,14 @@ export const SignupForm: React.FC<SignupFormProps> = ({ language, onBack, onSign
                 type="text"
                 value={formData.ifscCode}
                 onChange={(e) => setFormData(prev => ({ ...prev, ifscCode: e.target.value.toUpperCase() }))}
+                onInvalid={e => {
+                  const input = e.target as HTMLInputElement;
+                  input.setCustomValidity(language === 'hi' ? 'कृपया यह फ़ील्ड भरें' : 'Please fill out this field.');
+                }}
+                onInput={e => {
+                  const input = e.target as HTMLInputElement;
+                  input.setCustomValidity('');
+                }}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-12"
                 placeholder="SBIN0001234"
                 required
@@ -255,6 +293,14 @@ export const SignupForm: React.FC<SignupFormProps> = ({ language, onBack, onSign
                 type="tel"
                 value={formData.phoneNo}
                 onChange={(e) => setFormData(prev => ({ ...prev, phoneNo: e.target.value }))}
+                onInvalid={e => {
+                  const input = e.target as HTMLInputElement;
+                  input.setCustomValidity(language === 'hi' ? 'कृपया यह फ़ील्ड भरें' : 'Please fill out this field.');
+                }}
+                onInput={e => {
+                  const input = e.target as HTMLInputElement;
+                  input.setCustomValidity('');
+                }}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-12"
                 placeholder="9876543210"
                 maxLength={10}

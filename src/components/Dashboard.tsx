@@ -74,43 +74,50 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const upcomingEMIs = emis.filter(emi => emi.status === 'unpaid').slice(0, 3);
   const overdueEMIs = emis.filter(emi => emi.status === 'overdue');
 
-  const handleVoiceCommand = async () => {
-    try {
-      if (language === 'hi') {
-        await speak('मैं आपकी किस प्रकार सहायता कर सकता हूँ?');
-      } else {
-        await speak('How can I help you today?');
-      }
-      const command = await startListening();
-      if (
-        command.toLowerCase().includes('loan') ||
-        command.includes('ऋण')
-      ) {
-        onNewLoan();
-      } else if (
-        command.toLowerCase().includes('emi') ||
-        command.toLowerCase().includes('payment')
-      ) {
-        setActiveTab('emis');
-      } else if (
-        command.toLowerCase().includes('chat') ||
-        command.toLowerCase().includes('help') ||
-        command.includes('सहायता')
-      ) {
-        onOpenChat();
-      } else {
-        if (language === 'hi') {
-          await speak('मैं आपकी ऋण आवेदन, ईएमआई या सहायता में मदद कर सकता हूँ। कृपया बताएं, आप क्या करना चाहते हैं?');
-        } else {
-          await speak('I can help you apply for a new loan, check your EMIs, or chat about your loans. What would you like to do?');
-        }
-      }
-    } catch (error) {
-      console.error('Voice command error:', error);
+const handleVoiceCommand = async () => {
+  try {
+    if (language === 'hi') {
+      await speak('मैं आपकी किस प्रकार सहायता कर सकता हूँ?');
+    } else {
+      await speak('How can I help you today?');
     }
-  };
 
-  const payEMI = async (emiId: string) => {
+    const command = await startListening();
+    const lowerCaseCommand = command.toLowerCase();
+
+    // Prioritize specific commands first
+    if (lowerCaseCommand.includes('loan') || lowerCaseCommand.includes('ऋण')) {
+      await speak(language === 'hi' ? 'ठीक है, मैं आपको ऋण अनुभाग में ले जा रहा हूँ।' : 'Okay, I am taking you to the loan section.');
+      onNewLoan();
+      return; // Exit function after a match is found
+    }
+
+    if (lowerCaseCommand.includes('emi') || lowerCaseCommand.includes('ईएमआई') || lowerCaseCommand.includes('payment') || lowerCaseCommand.includes('भुगतान')) {
+      await speak(language === 'hi' ? 'ठीक है, मैं आपको ईएमआई अनुभाग में ले जा रहा हूँ।' : 'Okay, I am taking you to the EMI section.');
+      setActiveTab('emis');
+      return; // Exit
+    }
+
+    if (lowerCaseCommand.includes('chat') || lowerCaseCommand.includes('help') || lowerCaseCommand.includes('सहायता')) {
+      await speak(language === 'hi' ? 'ठीक है, मैं आपको सहायता चैट में ले जा रहा हूँ।' : 'Okay, I am taking you to the help chat.');
+      onOpenChat();
+      return; // Exit
+    }
+
+    // Fallback if no command is matched
+    if (language === 'hi') {
+      await speak('मुझे समझ नहीं आया। मैं आपकी ऋण आवेदन, ईएमआई या सहायता में मदद कर सकता हूँ। कृपया बताएं, आप क्या करना चाहते हैं?');
+    } else {
+      await speak('I did not understand. I can help you apply for a new loan, check your EMIs, or chat about your loans. What would you like to do?');
+    }
+
+  } catch (error) {
+    console.error('Voice command error:', error);
+    await speak(language === 'hi' ? 'क्षमा करें, कुछ ग़लती हुई।' : 'Sorry, something went wrong.');
+  }
+};
+
+const payEMI = async (emiId: string) => {
     const result = await LoanService.payEMI(emiId);
     if (result.success) {
       const userEMIs = await LoanService.getEMIsByUser(user.id);
