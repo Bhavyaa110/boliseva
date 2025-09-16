@@ -19,14 +19,26 @@ export const OTPVerification: React.FC<OTPVerificationProps> = ({
 }) => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [timer, setTimer] = useState(60);
+  const [isTimerRunning, setIsTimerRunning] = useState(true);
 
   useEffect(() => {
+    if (!isTimerRunning) {
+      return;
+    }
+
     const interval = setInterval(() => {
-      setTimer((prev) => (prev > 0 ? prev - 1 : 0));
+      setTimer((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          setIsTimerRunning(false);
+          return 0;
+        }
+        return prev - 1;
+      });
     }, 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [isTimerRunning]);
 
   const handleOtpChange = (index: number, value: string) => {
     if (value.length <= 1 && /^\d*$/.test(value)) {
@@ -54,6 +66,13 @@ export const OTPVerification: React.FC<OTPVerificationProps> = ({
     }
   };
 
+  const handleResendOtp = () => {
+    console.log("Resending OTP...");
+    setTimer(60);
+    setIsTimerRunning(true);
+    setOtp(['', '', '', '', '', '']);
+  };
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
@@ -97,13 +116,16 @@ export const OTPVerification: React.FC<OTPVerificationProps> = ({
 
           {/* Timer */}
           <div className="text-center">
-            {timer > 0 ? (
+            {isTimerRunning ? (
               <p className="text-gray-600 text-sm">
-                Resend OTP in {timer}s
+                {language === 'hi' ? `${timer} सेकंड में ओ.टी.पी पुनः भेजें` : `Resend OTP in ${timer}s`}
               </p>
             ) : (
-              <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                Resend OTP
+              <button
+                onClick={handleResendOtp} // Add this line to call the function
+                className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+              >
+                {language === 'hi' ? 'ओ.टी.पी पुनः भेजें' : 'Resend OTP'}
               </button>
             )}
           </div>
@@ -125,7 +147,7 @@ export const OTPVerification: React.FC<OTPVerificationProps> = ({
         {/* Demo OTP Note */}
         <div className="mt-6 p-4 bg-amber-50 rounded-lg border border-amber-200">
           <p className="text-amber-800 text-xs text-center">
-            📱 Demo: Use OTP "123456" for testing.
+              {language === 'hi' ? '📱 डेमो: परीक्षण के लिए ओ.टी.पी "123456" का उपयोग करें।' : '📱 Demo: Use OTP "123456" for testing.'}
           </p>
         </div>
       </div>

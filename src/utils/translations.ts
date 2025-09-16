@@ -90,6 +90,7 @@ export const translations = {
     emiDue: "EMI Due",
     nextPayment: "Next Payment",
     loanStatus: "Loan Status",
+    emi: "EMI",
     
     // Status
     pending: "Pending",
@@ -137,9 +138,9 @@ export const translations = {
     accountNumber: "खाता संख्या",
     phoneNumber: "फोन नंबर",
     aadhaarNumber: "आधार नंबर",
-    sendOtp: "OTP भेजें",
-    otpSent: "आपके फोन पर OTP भेजा गया",
-    enterOtp: "OTP दर्ज करें",
+    sendOtp: "ओ.टी.पी भेजें",
+    otpSent: "आपके फोन पर ओ.टी.पी भेजा गया",
+    enterOtp: "ओ.टी.पी दर्ज करें",
     verify: "सत्यापित करें",
     
     // Voice Assistant
@@ -180,19 +181,20 @@ export const translations = {
     dashboard: "डैशबोर्ड",
     myLoans: "मेरे ऋण",
     overview: "अवलोकन",
-    emiSchedule: "EMI अनुसूची",
+    emiSchedule: "ईएमआई अनुसूची",
     quickActions: "त्वरित कार्य",
     recentActivity: "हाल की गतिविधि",
     activeLoans: "सक्रिय ऋण",
-    nextEmi: "अगली EMI",
+    nextEmi: "अगली ईएमआई",
     paymentStatus: "भुगतान स्थिति",
     noLoansYet: "अभी तक कोई ऋण आवेदन नहीं",
-    noEmiSchedule: "कोई EMI अनुसूची उपलब्ध नहीं",
+    noEmiSchedule: "कोई ईएमआई अनुसूची उपलब्ध नहीं",
     paymentOverdue: "भुगतान अतिदेय",
-    emisPending: "EMI लंबित",
-    emiDue: "EMI देय",
+    emisPending: "ईएमआई लंबित",
+    emiDue: "ईएमआई देय",
     nextPayment: "अगला भुगतान",
     loanStatus: "ऋण स्थिति",
+    emi: "ईएमआई",
     
     // Status
     pending: "लंबित",

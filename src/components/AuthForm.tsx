@@ -66,7 +66,9 @@ export const AuthForm: React.FC<AuthFormProps> = ({ language, onLogin, onSignup,
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-blue-900 mb-2">BoliSeva</h1>
+          <h1 className="text-3xl font-bold text-blue-900 mb-2">  
+            {language === 'hi' ? 'बोलीसेवा' : 'Boliseva'}
+          </h1>
           <p className="text-gray-600">{getTranslation('voiceFirstAssistant', language)}</p>
         </div>
 

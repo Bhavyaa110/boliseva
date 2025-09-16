@@ -58,7 +58,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         );
         
         if (overdueEMIs.length > 0) {
-          setNotifications([language === 'hi' ? `आपकी ${overdueEMIs.length} EMI(एं) बकाया हैं` : `You have ${overdueEMIs.length} overdue EMI(s)`]);
+          setNotifications([language === 'hi' ? `आपकी ${overdueEMIs.length} ईएमआई बकाया हैं` : `You have ${overdueEMIs.length} overdue EMI(s)`]);
           await LoanService.sendEMIReminders();
         }
       } catch (error) {
@@ -100,7 +100,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         onOpenChat();
       } else {
         if (language === 'hi') {
-          await speak('मैं आपकी ऋण आवेदन, EMI या सहायता में मदद कर सकता हूँ। कृपया बताएं, आप क्या करना चाहते हैं?');
+          await speak('मैं आपकी ऋण आवेदन, ईएमआई या सहायता में मदद कर सकता हूँ। कृपया बताएं, आप क्या करना चाहते हैं?');
         } else {
           await speak('I can help you apply for a new loan, check your EMIs, or chat about your loans. What would you like to do?');
         }

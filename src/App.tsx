@@ -87,7 +87,7 @@ function App() {
       }
       setTimeout(() => {
         setAppState('dashboard');
-      }, 1000);
+      }, 500);
     } else {
       setAppState('dashboard');
     }

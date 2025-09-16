@@ -115,7 +115,11 @@ export const SignupForm: React.FC<SignupFormProps> = ({ language, onBack, onSign
           <h1 className="text-2xl font-bold text-blue-900 mb-2">
             {getTranslation('createAccount', language)}
           </h1>
-          <p className="text-gray-600">Fill in your details to get started</p>
+          <p className="text-gray-600">
+            {language === 'hi'
+              ? 'शुरू करने के लिए अपनी जानकारी भरें'
+              : 'Fill in your details to get started'}
+          </p>
         </div>
 
         {error && (
@@ -129,7 +133,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ language, onBack, onSign
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <User className="w-4 h-4 inline mr-2" />
-              Full Name
+              {language === 'hi' ? 'पूरा नाम' : 'Full Name'}
             </label>
             <div className="relative">
               <input
@@ -137,7 +141,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ language, onBack, onSign
                 value={formData.name}
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-12"
-                placeholder="Enter your full name"
+                placeholder={language === 'hi' ? 'अपना पूरा नाम दर्ज करें' : 'Enter your full name'}
                 required
               />
               {isSupported && (
@@ -158,7 +162,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ language, onBack, onSign
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <Calendar className="w-4 h-4 inline mr-2" />
-              Date of Birth
+              {language === 'hi' ? 'जन्म तिथि' : 'Date of Birth'}
             </label>
             <div className="relative">
               <input
@@ -186,7 +190,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ language, onBack, onSign
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <CreditCard className="w-4 h-4 inline mr-2" />
-              Account Number
+              {language === 'hi' ? 'खाता संख्या' : 'Account Number'}
             </label>
             <div className="relative">
               <input
@@ -194,7 +198,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ language, onBack, onSign
                 value={formData.accNo}
                 onChange={(e) => setFormData(prev => ({ ...prev, accNo: e.target.value }))}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-12"
-                placeholder="Enter your account number"
+                placeholder="1234567890123.."
                 required
               />
               {isSupported && (
@@ -215,7 +219,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ language, onBack, onSign
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <Building className="w-4 h-4 inline mr-2" />
-              IFSC Code
+              {language === 'hi' ? 'आईएफएससी कोड' : 'IFSC Code'}
             </label>
             <div className="relative">
               <input
@@ -244,7 +248,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ language, onBack, onSign
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <Phone className="w-4 h-4 inline mr-2" />
-              Phone Number
+              {language === 'hi' ? 'फोन नंबर' : 'Phone Number'}
             </label>
             <div className="relative">
               <input

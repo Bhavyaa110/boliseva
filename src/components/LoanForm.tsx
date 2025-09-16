@@ -307,10 +307,10 @@ const LoanForm: React.FC<LoanFormProps> = ({
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <h3 className="font-medium text-blue-900 flex items-center mb-4">
                   <Calculator className="w-4 h-4 mr-2" />
-                  {language === 'hi' ? 'EMI कैलकुलेटर' : 'EMI Calculator'}
+                  {language === 'hi' ? 'ईएमआई कैलकुलेटर' : 'EMI Calculator'}
                 </h3>
                 <div className="text-center">
-                  <p className="text-sm text-blue-700 mb-1">{language === 'hi' ? 'मासिक EMI' : 'Monthly EMI'}</p>
+                  <p className="text-sm text-blue-700 mb-1">{language === 'hi' ? 'मासिक ईएमआई' : 'Monthly EMI'}</p>
                   <p className="text-3xl font-bold text-blue-900 mb-2">
                     ₹{calculatedEMI ? calculatedEMI.toLocaleString() : '0'}
                   </p>
@@ -489,7 +489,7 @@ const LoanForm: React.FC<LoanFormProps> = ({
               {calculatedEMI && (
                 <div className="border-t pt-4">
                   <div className="text-center bg-blue-100 rounded-lg p-4">
-                    <p className="text-sm text-blue-700 mb-1">{language === 'hi' ? 'अनुमानित मासिक EMI' : 'Estimated Monthly EMI'}</p>
+                    <p className="text-sm text-blue-700 mb-1">{language === 'hi' ? 'अनुमानित मासिक ईएमआई' : 'Estimated Monthly EMI'}</p>
                     <p className="text-3xl font-bold text-blue-900">₹{calculatedEMI.toLocaleString()}</p>
                     <div className="space-y-1 text-sm mt-3">
                       <div className="flex justify-between">
