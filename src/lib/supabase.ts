@@ -49,6 +49,7 @@ export interface Database {
           phone_no: string;
           otp: string;
           last_login: string;
+          expires_at: string;
           created_at: string;
         };
         Insert: {
@@ -56,6 +57,7 @@ export interface Database {
           phone_no: string;
           otp: string;
           last_login?: string;
+          expires_at?: string;
           created_at?: string;
         };
         Update: {
@@ -63,6 +65,7 @@ export interface Database {
           phone_no?: string;
           otp?: string;
           last_login?: string;
+          expires_at?: string;
           created_at?: string;
         };
       };
