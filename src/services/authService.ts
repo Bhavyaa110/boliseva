@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { User } from '../types';
+import { SMSService } from '../utils/sms';
 
 export class AuthService {
   static async signup(userData: {
@@ -46,12 +47,16 @@ export class AuthService {
       // Generate OTP (in production, this would be sent via SMS)
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-      // Store OTP in database
+      // Set OTP expiration time 5 minutes from now
+      const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+
+      // Store OTP and expiration in database
       const { error } = await supabase
         .from('logins')
         .upsert({
           phone_no: phoneNo,
           otp: otp,
+          expires_at: expiresAt,
           last_login: new Date().toISOString(),
         });
 
@@ -59,9 +64,12 @@ export class AuthService {
         return { success: false, error: error.message };
       }
 
-      // In production, send OTP via SMS service
-      console.log(`OTP for ${phoneNo}: ${otp}`);
-      
+      // Send OTP via SMS
+      const smsResult = await SMSService.sendOTP(phoneNo, otp);
+      if (!smsResult.success) {
+        return { success: false, error: smsResult.error || 'Failed to send OTP SMS' };
+      }
+
       return { success: true };
     } catch (error) {
       return { success: false, error: 'Network error occurred' };
@@ -108,6 +116,11 @@ export class AuthService {
 
       if (!loginData) {
         return { success: false, error: 'Invalid OTP' };
+      }
+
+      // Check if OTP expired
+      if (loginData.expires_at && new Date(loginData.expires_at) < new Date()) {
+        return { success: false, error: 'OTP expired' };
       }
 
       // Get user data
