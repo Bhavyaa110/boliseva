@@ -19,6 +19,7 @@ export const translations = {
     welcomeBack: "Welcome back",
     payNow: "Pay Now",
     allClear: "All Clear",
+    chat: "Chat",
     
     // Language Selection
     selectLanguage: "Select Your Preferred Language",
@@ -40,7 +41,7 @@ export const translations = {
     verify: "Verify",
     
     // Voice Assistant
-    voiceAssistant: "Voice Assistant",
+    voiceAssistant: "Bolibot",
     tapToSpeak: "Tap to speak",
     listening: "Listening...",
     processing: "Processing...",
@@ -123,6 +124,7 @@ export const translations = {
     welcomeBack: "वापस आपका स्वागत है",
     payNow: "अभी भुगतान करें",
     allClear: "कोई बकाया नहीं",
+    chat: "चैट",
     
     // Language Selection
     selectLanguage: "अपनी पसंदीदा भाषा चुनें",
@@ -144,7 +146,7 @@ export const translations = {
     verify: "सत्यापित करें",
     
     // Voice Assistant
-    voiceAssistant: "आवाज सहायक",
+    voiceAssistant: "बोलिबॉट",
     tapToSpeak: "बोलने के लिए टैप करें",
     listening: "सुन रहा है...",
     processing: "प्रक्रिया में...",

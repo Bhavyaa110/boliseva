@@ -1,6 +1,7 @@
 import { supabase } from '../lib/supabase';
 import { User } from '../types';
 import { SMSService } from '../utils/sms';
+import { RateLimiter } from '../utils/rateLimiter';
 
 export class AuthService {
   static async signup(userData: {
@@ -44,6 +45,11 @@ export class AuthService {
         return { success: false, error: 'Phone number not registered. Please sign up first.' };
       }
 
+      // Check rate limit
+      if (RateLimiter.isRateLimited(phoneNo)) {
+        return { success: false, error: 'Rate limit exceeded. Please try again later.' };
+      }
+
       // Generate OTP (in production, this would be sent via SMS)
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
@@ -63,6 +69,9 @@ export class AuthService {
       if (error) {
         return { success: false, error: error.message };
       }
+
+      // Record attempt for rate limiting
+      RateLimiter.recordAttempt(phoneNo);
 
       // Send OTP via SMS
       const smsResult = await SMSService.sendOTP(phoneNo, otp);

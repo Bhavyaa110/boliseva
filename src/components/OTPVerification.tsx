@@ -6,6 +6,7 @@ interface OTPVerificationProps {
   language: string;
   phoneNumber: string;
   onVerify: (otp: string) => void;
+  onResend: (phoneNo: string) => Promise<{ success: boolean; error?: string }>;
   onBack: () => void;
   isLoading: boolean;
 }
@@ -14,6 +15,7 @@ export const OTPVerification: React.FC<OTPVerificationProps> = ({
   language,
   phoneNumber,
   onVerify,
+  onResend,
   onBack,
   isLoading,
 }) => {
@@ -66,8 +68,15 @@ export const OTPVerification: React.FC<OTPVerificationProps> = ({
     }
   };
 
-  const handleResendOtp = () => {
-    console.log("Resending OTP...");
+  const [rateLimitError, setRateLimitError] = React.useState<string | null>(null);
+
+  const handleResendOtp = async () => {
+    setRateLimitError(null);
+    const result = await onResend(phoneNumber);
+    if (!result.success) {
+      setRateLimitError(result.error || 'Failed to resend OTP');
+      return;
+    }
     setTimer(60);
     setIsTimerRunning(true);
     setOtp(['', '', '', '', '', '']);
@@ -127,6 +136,9 @@ export const OTPVerification: React.FC<OTPVerificationProps> = ({
               >
                 {language === 'hi' ? 'ओ.टी.पी पुनः भेजें' : 'Resend OTP'}
               </button>
+            )}
+            {rateLimitError && (
+              <p className="text-red-600 text-sm mt-2">{rateLimitError}</p>
             )}
           </div>
 

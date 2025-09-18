@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  CreditCard, 
-  Calendar, 
-  AlertCircle, 
-  CheckCircle2,  
-  Plus,
+import {
+  CreditCard,
+  Calendar,
+  AlertCircle,
+  CheckCircle2,
   TrendingUp,
-  MessageCircle,
   Wallet,
   Bell
 } from 'lucide-react';
@@ -23,17 +21,15 @@ interface DashboardProps {
   language: string;
   onLanguageChange: (language: string) => void;
   onNewLoan: () => void;
-  onOpenChat: () => void;
   onLogout: () => void;
 }
 
-export const Dashboard: React.FC<DashboardProps> = ({ 
-  user, 
-  language, 
+export const Dashboard: React.FC<DashboardProps> = ({
+  user,
+  language,
   onLanguageChange,
-  onNewLoan, 
-  onOpenChat,
-  onLogout 
+  onNewLoan,
+  onLogout,
 }) => {
   const [loans, setLoans] = useState<LoanApplication[]>([]);
   const [emis, setEMIs] = useState<EMI[]>([]);
@@ -42,6 +38,24 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const { isListening, isSpeaking, isSupported, startListening, speak, stopSpeaking } = useVoice(language);
 
   useEffect(() => {
+    // Dynamically load botpress scripts only on dashboard
+    const injectScript = document.createElement('script');
+    injectScript.src = 'https://cdn.botpress.cloud/webchat/v2/inject.js';
+    injectScript.async = true;
+    injectScript.onload = () => {
+      const botScript = document.createElement('script');
+      botScript.src = 'https://files.bpcontent.cloud/2025/09/10/05/20250910055332-N3GU1F6C.js';
+      botScript.async = true;
+      botScript.onload = () => {
+      };
+      document.body.appendChild(botScript);
+    };
+    injectScript.onerror = () => {
+      console.error('Failed to load Botpress inject script');
+      // Optionally show a user-friendly message or fallback UI here
+    };
+    document.body.appendChild(injectScript);
+
     const fetchData = async () => {
       try {
         // Fetch user's loans and EMIs
@@ -49,14 +63,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
         const userEMIs = await LoanService.getEMIsByUser(user.id);
         setLoans(userLoans);
         setEMIs(userEMIs);
-        
+
         // Check for EMI reminders
-        const overdueEMIs = userEMIs.filter(emi => 
-          emi.status === 'unpaid' && 
-          emi.dueDate < new Date() && 
+        const overdueEMIs = userEMIs.filter(emi =>
+          emi.status === 'unpaid' &&
+          emi.dueDate < new Date() &&
           !emi.reminderSent
         );
-        
+
         if (overdueEMIs.length > 0) {
           setNotifications([language === 'hi' ? `आपकी ${overdueEMIs.length} ईएमआई बकाया हैं` : `You have ${overdueEMIs.length} overdue EMI(s)`]);
           await LoanService.sendEMIReminders();
@@ -65,7 +79,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         console.error('Error fetching dashboard data:', error);
       }
     };
-    
+
     if (user?.id) {
       fetchData();
     }
@@ -74,48 +88,41 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const upcomingEMIs = emis.filter(emi => emi.status === 'unpaid').slice(0, 3);
   const overdueEMIs = emis.filter(emi => emi.status === 'overdue');
 
-const handleVoiceCommand = async () => {
-  try {
-    if (language === 'hi') {
-      await speak('मैं आपकी किस प्रकार सहायता कर सकता हूँ?');
-    } else {
-      await speak('How can I help you today?');
+  const handleVoiceCommand = async () => {
+    try {
+      if (language === 'hi') {
+        await speak('मैं आपकी किस प्रकार सहायता कर सकता हूँ?');
+      } else {
+        await speak('How can I help you today?');
+      }
+
+      const command = await startListening();
+      const lowerCaseCommand = command.toLowerCase();
+
+      // Prioritize specific commands first
+      if (lowerCaseCommand.includes('loan') || lowerCaseCommand.includes('ऋण')) {
+        await speak(language === 'hi' ? 'ठीक है, मैं आपको ऋण अनुभाग में ले जा रहा हूँ।' : 'Okay, I am taking you to the loan section.');
+        onNewLoan();
+        return; // Exit function after a match is found
+      }
+
+      if (lowerCaseCommand.includes('emi') || lowerCaseCommand.includes('ईएमआई') || lowerCaseCommand.includes('payment') || lowerCaseCommand.includes('भुगतान')) {
+        await speak(language === 'hi' ? 'ठीक है, मैं आपको ईएमआई अनुभाग में ले जा रहा हूँ।' : 'Okay, I am taking you to the EMI section.');
+        setActiveTab('emis');
+        return; // Exit
+      }
+
+      // Fallback if no command is matched
+      if (language === 'hi') {
+        await speak('मुझे समझ नहीं आया। मैं आपकी ऋण आवेदन, ईएमआई या सहायता में मदद कर सकता हूँ। कृपया बताएं, आप क्या करना चाहते हैं?');
+      } else {
+        await speak('I did not understand. I can help you apply for a new loan, check your EMIs, or chat about your loans. What would you like to do?');
+      }
+    } catch (error) {
+      console.error('Voice command error:', error);
+      await speak(language === 'hi' ? 'क्षमा करें, कुछ ग़लती हुई।' : 'Sorry, something went wrong.');
     }
-
-    const command = await startListening();
-    const lowerCaseCommand = command.toLowerCase();
-
-    // Prioritize specific commands first
-    if (lowerCaseCommand.includes('loan') || lowerCaseCommand.includes('ऋण')) {
-      await speak(language === 'hi' ? 'ठीक है, मैं आपको ऋण अनुभाग में ले जा रहा हूँ।' : 'Okay, I am taking you to the loan section.');
-      onNewLoan();
-      return; // Exit function after a match is found
-    }
-
-    if (lowerCaseCommand.includes('emi') || lowerCaseCommand.includes('ईएमआई') || lowerCaseCommand.includes('payment') || lowerCaseCommand.includes('भुगतान')) {
-      await speak(language === 'hi' ? 'ठीक है, मैं आपको ईएमआई अनुभाग में ले जा रहा हूँ।' : 'Okay, I am taking you to the EMI section.');
-      setActiveTab('emis');
-      return; // Exit
-    }
-
-    if (lowerCaseCommand.includes('chat') || lowerCaseCommand.includes('help') || lowerCaseCommand.includes('सहायता')) {
-      await speak(language === 'hi' ? 'ठीक है, मैं आपको सहायता चैट में ले जा रहा हूँ।' : 'Okay, I am taking you to the help chat.');
-      onOpenChat();
-      return; // Exit
-    }
-
-    // Fallback if no command is matched
-    if (language === 'hi') {
-      await speak('मुझे समझ नहीं आया। मैं आपकी ऋण आवेदन, ईएमआई या सहायता में मदद कर सकता हूँ। कृपया बताएं, आप क्या करना चाहते हैं?');
-    } else {
-      await speak('I did not understand. I can help you apply for a new loan, check your EMIs, or chat about your loans. What would you like to do?');
-    }
-
-  } catch (error) {
-    console.error('Voice command error:', error);
-    await speak(language === 'hi' ? 'क्षमा करें, कुछ ग़लती हुई।' : 'Sorry, something went wrong.');
-  }
-};
+  };
 
 const payEMI = async (emiId: string) => {
     const result = await LoanService.payEMI(emiId);
@@ -187,6 +194,8 @@ const payEMI = async (emiId: string) => {
                   size="md"
                 />
               )}
+              {/* Removed old chat button to disable old chat assistant */}
+              <div id="bp-web-widget" />
               <button
                 onClick={onLogout}
                 className="text-gray-600 hover:text-gray-900 text-sm"
@@ -212,7 +221,7 @@ const payEMI = async (emiId: string) => {
         </div>
       )}
 
-      <div className="max-w-4xl mx-auto px-4 py-6">
+      <div className="max-w-4xl mx-auto px-4 py-6 min-h-screen">
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white rounded-xl shadow-sm p-6">
@@ -292,30 +301,17 @@ const payEMI = async (emiId: string) => {
             </nav>
           </div>
 
-          <div className="p-6">
+          <div className="p-6 min-h-[270px]">
             {activeTab === 'overview' && (
               <div className="space-y-6">
                 {/* Quick Actions */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">{getTranslation('quickActions', language)}</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <button
-                      onClick={onNewLoan}
-                      className="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition-colors"
-                    >
-                      <Plus className="w-6 h-6 text-blue-600 mx-auto mb-2" />
-                      <p className="text-sm font-medium text-blue-900">{getTranslation('applyForLoan', language)}</p>
-                    </button>
-                    
-                    <button
-                      onClick={onOpenChat}
-                      className="p-4 bg-green-50 hover:bg-green-100 rounded-lg border border-green-200 transition-colors"
-                    >
-                      <MessageCircle className="w-6 h-6 text-green-600 mx-auto mb-2" />
-                      <p className="text-sm font-medium text-green-900">{getTranslation('chatAssistant', language)}</p>
-                    </button>
-                  </div>
+                <div className="grid grid-cols gap-4">
+                <div className="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition-colors cursor-pointer flex flex-col items-center justify-center"
+                  onClick={onNewLoan}
+                >
+                <p className="text-sm font-medium text-blue-900">{getTranslation('applyForLoan', language)}</p>
                 </div>
+              </div>
 
                 {/* Recent Activity */}
                 <div>
@@ -419,15 +415,7 @@ const payEMI = async (emiId: string) => {
           </div>
         </div>
 
-        {/* Floating Action Button */}
-        <div className="fixed bottom-6 right-6">
-          <button
-            onClick={onOpenChat}
-            className="bg-blue-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 hover:scale-105"
-          >
-            <MessageCircle className="w-6 h-6" />
-          </button>
-        </div>
+
 
         {/* Overdue Alert */}
         {overdueEMIs.length > 0 && (

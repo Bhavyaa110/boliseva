@@ -6,21 +6,19 @@ import { OTPVerification } from './components/OTPVerification';
 import { DocumentVerification } from './components/DocumentVerification';
 import { Dashboard } from './components/Dashboard';
 import LoanForm from './components/LoanForm';
-import { VoiceChat } from './components/VoiceChat';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { useAuth } from './hooks/useAuth';
 import { useVoice } from './hooks/useVoice';
 import { LocalStorage } from './utils/storage';
 
-type AppState = 
+type AppState =
   | 'language-selection'
   | 'auth'
   | 'signup'
   | 'otp-verification'
   | 'document-verification'
   | 'dashboard'
-  | 'loan-form'
-  | 'voice-chat';
+  | 'loan-form';
 
 function App() {
   const [appState, setAppState] = useState<AppState>('language-selection');
@@ -106,6 +104,8 @@ function App() {
     setAppState('auth');
   };
 
+
+
   // Loading state
   if (authLoading) {
     return (
@@ -151,6 +151,7 @@ function App() {
           language={language}
           phoneNumber={phoneNumber}
           onVerify={handleOtpVerification}
+          onResend={sendOTP}
           onBack={() => setAppState('auth')}
           isLoading={authLoading}
         />
@@ -170,7 +171,6 @@ function App() {
           language={language}
           onLanguageChange={handleLanguageChange}
           onNewLoan={() => setAppState('document-verification')}
-          onOpenChat={() => setAppState('voice-chat')}
           onLogout={handleLogout}
         />
       )}
@@ -186,13 +186,7 @@ function App() {
         />
       )}
 
-      {appState === 'voice-chat' && user && (
-        <VoiceChat
-          language={language}
-          onBack={() => setAppState('dashboard')}
-          onLoanRequest={() => setAppState('loan-form')}
-        />
-      )}
+
     </>
   );
 }
