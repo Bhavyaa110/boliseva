@@ -126,9 +126,36 @@ const LoanForm: React.FC<LoanFormProps> = ({
 
     try {
       console.log('Starting loan submission for user:', userId);
-      
+
       if (!userId) {
         setError('User authentication required. Please log in again.');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Check if offline
+      if (!navigator.onLine) {
+        // Add to offline queue using storage utility
+        const { OfflineQueue } = await import('../utils/storage');
+        OfflineQueue.addToQueue({
+          type: 'submitLoan',
+          data: {
+            userId,
+            type: formData.type,
+            amount: parseFloat(formData.amount),
+            purpose: formData.purpose,
+            income: parseFloat(formData.income),
+            employment: formData.employment,
+            documentsVerified: true,
+          },
+        });
+
+        const offlineMessages = {
+          en: 'You are offline. Your loan application has been saved and will be submitted when you are back online.',
+          hi: 'आप ऑफ़लाइन हैं। आपका ऋण आवेदन सहेजा गया है और जब आप ऑनलाइन होंगे तो जमा किया जाएगा।',
+        };
+        await speak(offlineMessages[language as keyof typeof offlineMessages] || offlineMessages.en);
+        onComplete();
         setIsSubmitting(false);
         return;
       }

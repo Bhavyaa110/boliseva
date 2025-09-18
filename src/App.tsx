@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import toast, { Toaster } from 'react-hot-toast';
 import { LanguageSelector } from './components/LanguageSelector';
 import { AuthForm } from './components/AuthForm';
 import { SignupForm } from './components/SignupForm';

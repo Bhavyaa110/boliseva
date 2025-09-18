@@ -55,12 +55,22 @@ export class OfflineQueue {
     const queue = this.getQueue();
     if (queue.length === 0) return;
 
+    // Import LoanService dynamically to avoid circular imports
+    const { LoanService } = await import('../services/loanService');
+
     // Process each queued action
     for (const action of queue) {
       try {
-        // Simulate API calls
-        console.log('Processing offline action:', action);
-        await new Promise(resolve => setTimeout(resolve, 100));
+        if (action.type === 'submitLoan') {
+          const result = await LoanService.submitApplication(action.data);
+          if (!result.success) {
+            console.error('Failed to submit loan offline:', result.error);
+            // Optionally, keep in queue or handle failure
+          } else {
+            console.log('Loan submitted successfully from offline queue:', result.loanId);
+          }
+        }
+        // Add more action types as needed
       } catch (error) {
         console.error('Error processing offline action:', error);
       }

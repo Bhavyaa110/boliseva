@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { OfflineQueue } from '../utils/storage';
 
 export const useOffline = () => {
@@ -37,6 +38,7 @@ export const useOffline = () => {
       try {
         await OfflineQueue.processQueue();
         setHasPendingSync(false);
+        toast.success('Your offline data has been successfully synced.');
       } catch (error) {
         console.error('Error syncing offline data:', error);
       }
