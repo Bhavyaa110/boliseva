@@ -6,7 +6,8 @@ import {
   CheckCircle2,
   TrendingUp,
   Wallet,
-  Bell
+  Bell,
+  Mic,
 } from 'lucide-react';
 import { User, LoanApplication, EMI } from '../types';
 import { getTranslation } from '../utils/translations';
@@ -22,6 +23,7 @@ interface DashboardProps {
   onLanguageChange: (language: string) => void;
   onNewLoan: () => void;
   onLogout: () => void;
+  onStartVoiceChat: () => void;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
@@ -30,17 +32,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onLanguageChange,
   onNewLoan,
   onLogout,
+  onStartVoiceChat,
 }) => {
   const [loans, setLoans] = useState<LoanApplication[]>([]);
   const [emis, setEMIs] = useState<EMI[]>([]);
   const [activeTab, setActiveTab] = useState<'overview' | 'loans' | 'emis'>('overview');
   const [notifications, setNotifications] = useState<string[]>([]);
-  const { isListening, isSpeaking, isSupported, startListening, speak, stopSpeaking } = useVoice(language);
+  const { isSupported } = useVoice(language);
 
   useEffect(() => {
     // Dynamically load botpress scripts only on dashboard
     const injectScript = document.createElement('script');
-    injectScript.src = 'https://cdn.botpress.cloud/webchat/v2/inject.js';
+    injectScript.src = 'https://cdn.botpress.cloud/webchat/v3.2/inject.js';
     injectScript.async = true;
     injectScript.onload = () => {
       const botScript = document.createElement('script');
@@ -103,58 +106,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
   // Get overdue EMIs
   const overdueEMIs = sortedEMIs.filter(emi => emi.status === 'overdue');
 
-  const handleVoiceCommand = async () => {
-    try {
-      if (language === 'hi') {
-        await speak('मैं आपकी किस प्रकार सहायता कर सकता हूँ?');
-      } else {
-        await speak('How can I help you today?');
-      }
-
-      const command = await startListening();
-      const lowerCaseCommand = command.toLowerCase();
-
-      // Prioritize specific commands first
-      if (lowerCaseCommand.includes('loan') || lowerCaseCommand.includes('ऋण')) {
-        await speak(language === 'hi' ? 'ठीक है, मैं आपको ऋण अनुभाग में ले जा रहा हूँ।' : 'Okay, I am taking you to the loan section.');
-        onNewLoan();
-        return; // Exit function after a match is found
-      }
-
-      if (lowerCaseCommand.includes('emi') || lowerCaseCommand.includes('ईएमआई') || lowerCaseCommand.includes('payment') || lowerCaseCommand.includes('भुगतान')) {
-        await speak(language === 'hi' ? 'ठीक है, मैं आपको ईएमआई अनुभाग में ले जा रहा हूँ।' : 'Okay, I am taking you to the EMI section.');
-        setActiveTab('emis');
-        return; // Exit
-      }
-
-      // Fallback if no command is matched
-      if (language === 'hi') {
-        await speak('मुझे समझ नहीं आया। मैं आपकी ऋण आवेदन, ईएमआई या सहायता में मदद कर सकता हूँ। कृपया बताएं, आप क्या करना चाहते हैं?');
-      } else {
-        await speak('I did not understand. I can help you apply for a new loan, check your EMIs, or chat about your loans. What would you like to do?');
-      }
-    } catch (error) {
-      console.error('Voice command error:', error);
-      await speak(language === 'hi' ? 'क्षमा करें, कुछ ग़लती हुई।' : 'Sorry, something went wrong.');
-    }
-  };
-
 const payEMI = async (emiId: string) => {
     const result = await LoanService.payEMI(emiId);
     if (result.success) {
       const userEMIs = await LoanService.getEMIsByUser(user.id);
       setEMIs(userEMIs);
-      if (language === 'hi') {
-        await speak('EMI भुगतान सफल रहा!');
-      } else {
-        await speak('EMI payment successful!');
-      }
-    } else {
-      if (language === 'hi') {
-        await speak('EMI भुगतान विफल रहा। कृपया पुनः प्रयास करें।');
-      } else {
-        await speak('EMI payment failed. Please try again.');
-      }
     }
   };
 
@@ -190,7 +146,7 @@ const payEMI = async (emiId: string) => {
               </p>
             </div>
             <div className="flex items-center space-x-3">
-              <LanguageSwitch 
+              <LanguageSwitch
                 currentLanguage={language}
                 onLanguageChange={onLanguageChange}
               />
@@ -201,15 +157,13 @@ const payEMI = async (emiId: string) => {
                 </div>
               )}
               {isSupported && (
-                <VoiceButton
-                  isListening={isListening}
-                  isSpeaking={isSpeaking}
-                  onStartListening={handleVoiceCommand}
-                  onStopSpeaking={stopSpeaking}
-                  size="md"
-                />
+                <button
+                  onClick={onStartVoiceChat}
+                  className="bg-blue-600 text-white p-3 rounded-full hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                >
+                  <Mic className="w-5 h-5" />
+                </button>
               )}
-              {/* Removed old chat button to disable old chat assistant */}
               <div id="bp-web-widget" />
               <button
                 onClick={onLogout}

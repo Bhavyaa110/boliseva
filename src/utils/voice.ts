@@ -1,3 +1,5 @@
+type SpeechRecognition = typeof window.SpeechRecognition;
+
 export class VoiceService {
   private static instance: VoiceService;
   private recognition: SpeechRecognition | null = null;
@@ -40,12 +42,12 @@ export class VoiceService {
         return;
       }
 
-      this.recognition.onresult = (event) => {
+      this.recognition.onresult = (event: { results: { transcript: any; }[][]; }) => {
         const transcript = event.results[0][0].transcript;
         resolve(transcript);
       };
 
-      this.recognition.onerror = (event) => {
+      this.recognition.onerror = (event: { error: string | undefined; }) => {
         reject(new Error(event.error));
       };
 

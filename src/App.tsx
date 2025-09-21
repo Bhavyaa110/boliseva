@@ -9,6 +9,7 @@ import { Dashboard } from './components/Dashboard';
 import { AdminDashboard } from './components/AdminDashboard';
 import LoanForm from './components/LoanForm';
 import { OfflineIndicator } from './components/OfflineIndicator';
+import { VoiceChat } from './components/VoiceChat';
 import { useAuth } from './hooks/useAuth';
 import { useVoice } from './hooks/useVoice';
 import { LocalStorage } from './utils/storage';
@@ -21,7 +22,8 @@ type AppState =
   | 'document-verification'
   | 'dashboard'
   | 'loan-form'
-  | 'admin';
+  | 'admin'
+  | 'voice-chat';
 
 function App() {
   const [appState, setAppState] = useState<AppState>('language-selection');
@@ -48,7 +50,7 @@ function App() {
     setLanguage(selectedLanguage);
     updateLanguage(selectedLanguage);
     LocalStorage.set('boliseva_language', selectedLanguage);
-    
+
     // Welcome message in selected language
     if (selectedLanguage === 'hi') {
       await speak('बोलीसेवा में आपका स्वागत है। आइए शुरू करते हैं।');
@@ -69,7 +71,7 @@ function App() {
 
   const handleLogin = async (phoneNo: string) => {
     const result = await sendOTP(phoneNo);
-    
+
     if (result.success) {
       setPhoneNumber(phoneNo);
       setAppState('otp-verification');
@@ -84,7 +86,7 @@ function App() {
 
   const handleOtpVerification = async (otp: string) => {
     const result = await verifyOtp(phoneNumber, otp);
-    
+
     if (result.success) {
       await speak(language === 'hi' ? 'सफलतापूर्वक लॉगिन हो गए' : 'Successfully logged in');
       if ('user' in result && result.user && (result.user as { name?: string }).name) {
@@ -112,7 +114,10 @@ function App() {
     setAppState('auth');
   };
 
-
+  // New function to navigate to voice chat
+  const handleStartVoiceChat = () => {
+    setAppState('voice-chat');
+  };
 
   // Loading state
   if (authLoading) {
@@ -129,7 +134,7 @@ function App() {
   return (
     <>
       <OfflineIndicator />
-      
+
       {appState === 'language-selection' && (
         <LanguageSelector
           onLanguageSelect={handleLanguageSelect}
@@ -180,6 +185,7 @@ function App() {
           onLanguageChange={handleLanguageChange}
           onNewLoan={() => setAppState('document-verification')}
           onLogout={handleLogout}
+          onStartVoiceChat={handleStartVoiceChat}
         />
       )}
 
@@ -201,7 +207,13 @@ function App() {
         />
       )}
 
-
+      {appState === 'voice-chat' && (
+        <VoiceChat
+          language={language}
+          onBack={() => setAppState('dashboard')}
+          onLoanRequest={() => setAppState('loan-form')}
+        />
+      )}
     </>
   );
 }
