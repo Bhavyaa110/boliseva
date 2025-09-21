@@ -79,6 +79,36 @@ export class LoanService {
     }
   }
 
+  static async getLoansByStatus(status: string): Promise<LoanApplication[]> {
+    try {
+      const { data, error } = await supabase
+        .from('loans')
+        .select('*')
+        .eq('status', status)
+        .order('created_at', { ascending: false });
+
+      if (error || !data) return [];
+      return data.map(loan => ({
+        id: loan.loan_id,
+        userId: loan.user_id,
+        type: loan.loan_type,
+        amount: loan.amount,
+        purpose: loan.purpose,
+        income: loan.income,
+        employment: loan.employment,
+        status: loan.status,
+        documents: [],
+        documentsVerified: loan.documents_verified,
+        createdAt: new Date(loan.created_at),
+        updatedAt: new Date(loan.created_at),
+        tenure: loan.tenure || 12,
+        interestRate: loan.interest_rate || getInterestRate(loan.loan_type),
+      }));
+    } catch (error) {
+      return [];
+    }
+  }
+
   static async approveLoan(loanId: string): Promise<{ success: boolean; error?: string }> {
     try {
       const { error } = await supabase
@@ -99,24 +129,55 @@ export class LoanService {
     }
   }
 
+  static async updateLoanStatus(loanId: string, status: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      const { error } = await supabase
+        .from('loans')
+        .update({ status })
+        .eq('loan_id', loanId);
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      // Only generate EMIs if status is approved and not already generated
+      if (status === 'approved') {
+        const { data: existingEmis } = await supabase
+          .from('emis')
+          .select('emi_id')
+          .eq('loan_id', loanId);
+
+        if (!existingEmis || existingEmis.length === 0) {
+          await this.generateEMISchedule(loanId);
+        }
+      }
+
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: 'Network error occurred' };
+    }
+  }
+
   private static async generateEMISchedule(loanId: string): Promise<void> {
     try {
       // Get loan details
       const { data: loan } = await supabase
         .from('loans')
-        .select('amount')
+        .select('*')
         .eq('loan_id', loanId)
         .single();
 
       if (!loan) return;
 
-      const monthlyEMI = this.calculateEMI(loan.amount, 12, 12); // 12% interest, 12 months
+      const principal = loan.amount;
+      const tenure = loan.tenure || 12;
+      const rate = loan.interest_rate || getInterestRate(loan.loan_type);
+      const monthlyEMI = this.calculateEMI(principal, rate, tenure);
+
       const emisToInsert = [];
-      
-      for (let i = 0; i < 12; i++) {
-        const dueDate = new Date();
-        dueDate.setMonth(dueDate.getMonth() + i + 1);
-        
+      let dueDate = new Date();
+      for (let i = 0; i < tenure; i++) {
+        dueDate.setMonth(dueDate.getMonth() + 1);
         emisToInsert.push({
           loan_id: loanId,
           amount: monthlyEMI,
@@ -124,7 +185,6 @@ export class LoanService {
           status: 'unpaid',
         });
       }
-      
       await supabase.from('emis').insert(emisToInsert);
     } catch (error) {
       console.error('Error generating EMI schedule:', error);
@@ -133,7 +193,7 @@ export class LoanService {
 
   static calculateEMI(principal: number, rate: number, tenure: number): number {
     const monthlyRate = rate / (12 * 100);
-    const emi = (principal * monthlyRate * Math.pow(1 + monthlyRate, tenure)) / 
+    const emi = (principal * monthlyRate * Math.pow(1 + monthlyRate, tenure)) /
                 (Math.pow(1 + monthlyRate, tenure) - 1);
     return Math.round(emi);
   }
@@ -214,5 +274,30 @@ export class LoanService {
     } catch (error) {
       console.error('Error sending EMI reminders:', error);
     }
+  }
+
+  static async updateOverdueEMIs(): Promise<void> {
+    // This stub can be expanded to mark EMIs as overdue if their due_date < today and status is unpaid.
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      await supabase
+        .from('emis')
+        .update({ status: 'overdue' })
+        .eq('status', 'unpaid')
+        .lt('due_date', today);
+    } catch (error) {
+      // Log error but don't throw
+      console.error('Error updating overdue EMIs:', error);
+    }
+  }
+}
+
+function getInterestRate(type: string): number {
+  switch (type) {
+    case 'personal': return 10;
+    case 'business': return 12;
+    case 'agriculture': return 9;
+    case 'education': return 8;
+    default: return 12;
   }
 }

@@ -6,6 +6,7 @@ import { SignupForm } from './components/SignupForm';
 import { OTPVerification } from './components/OTPVerification';
 import { DocumentVerification } from './components/DocumentVerification';
 import { Dashboard } from './components/Dashboard';
+import { AdminDashboard } from './components/AdminDashboard';
 import LoanForm from './components/LoanForm';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { useAuth } from './hooks/useAuth';
@@ -19,7 +20,8 @@ type AppState =
   | 'otp-verification'
   | 'document-verification'
   | 'dashboard'
-  | 'loan-form';
+  | 'loan-form'
+  | 'admin';
 
 function App() {
   const [appState, setAppState] = useState<AppState>('language-selection');
@@ -34,6 +36,11 @@ function App() {
     if (savedLanguage) {
       setLanguage(savedLanguage);
       setAppState(user ? 'dashboard' : 'auth');
+    }
+
+    // Check for admin route
+    if (window.location.pathname === '/admin') {
+      setAppState('admin');
     }
   }, [user]);
 
@@ -184,6 +191,13 @@ function App() {
           onBack={() => setAppState('dashboard')}
           onComplete={handleLoanComplete}
           onDocumentVerification={() => setAppState('document-verification')}
+        />
+      )}
+
+      {appState === 'admin' && (
+        <AdminDashboard
+          language={language}
+          onBack={() => setAppState('dashboard')}
         />
       )}
 

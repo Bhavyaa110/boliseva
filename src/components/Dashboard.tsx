@@ -60,13 +60,22 @@ export const Dashboard: React.FC<DashboardProps> = ({
       try {
         // Fetch user's loans and EMIs
         const userLoans = await LoanService.getLoansByUser(user.id);
-        const userEMIs = await LoanService.getEMIsByUser(user.id);
+        let userEMIs = await LoanService.getEMIsByUser(user.id);
+
+        // Update overdue EMIs in DB (add stub if missing)
+        if (typeof LoanService.updateOverdueEMIs === 'function') {
+          await LoanService.updateOverdueEMIs();
+        }
+
+        // Refetch EMIs after updating overdue status
+        userEMIs = await LoanService.getEMIsByUser(user.id);
+
         setLoans(userLoans);
         setEMIs(userEMIs);
 
         // Check for EMI reminders
         const overdueEMIs = userEMIs.filter(emi =>
-          emi.status === 'unpaid' &&
+          (emi.status === 'unpaid' || emi.status === 'overdue') &&
           emi.dueDate < new Date() &&
           !emi.reminderSent
         );
@@ -85,8 +94,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
     }
   }, [user.id, user.phone]);
 
-  const upcomingEMIs = emis.filter(emi => emi.status === 'unpaid').slice(0, 3);
-  const overdueEMIs = emis.filter(emi => emi.status === 'overdue');
+  // Sort EMIs by due date ascending
+  const sortedEMIs = [...emis].sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime());
+
+  // Get upcoming EMIs: unpaid or overdue, sorted by due date
+  const upcomingEMIs = sortedEMIs.filter(emi => (emi.status === 'unpaid' || emi.status === 'overdue')).slice(0, 3);
+
+  // Get overdue EMIs
+  const overdueEMIs = sortedEMIs.filter(emi => emi.status === 'overdue');
 
   const handleVoiceCommand = async () => {
     try {

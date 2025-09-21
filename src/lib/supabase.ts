@@ -81,6 +81,8 @@ export interface Database {
           employment: string;
           documents_verified: boolean;
           created_at: string;
+          tenure?: number;
+          interest_rate?: number;
         };
         Insert: {
           loan_id?: string;
@@ -93,6 +95,8 @@ export interface Database {
           employment: string;
           documents_verified?: boolean;
           created_at?: string;
+          tenure?: number;
+          interest_rate?: number;
         };
         Update: {
           loan_id?: string;
@@ -105,6 +109,8 @@ export interface Database {
           employment?: string;
           documents_verified?: boolean;
           created_at?: string;
+          tenure?: number;
+          interest_rate?: number;
         };
       };
       emis: {

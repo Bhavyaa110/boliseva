@@ -24,6 +24,8 @@ export interface LoanApplication {
   documentsVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
+  tenure?: number; // months
+  interestRate?: number;
 }
 
 export interface Document {
