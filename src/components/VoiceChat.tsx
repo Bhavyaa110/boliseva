@@ -3,8 +3,18 @@ import { Send, VolumeX, ArrowLeft, Play } from 'lucide-react';
 import { ChatMessage } from '../types';
 import { getTranslation } from '../utils/translations';
 import { useVoice } from '../hooks/useVoice';
-import { AIService } from '../services/aiService';
+import { AIService } from '../services/aiService'; // Keeping this for sentiment analysis if needed later
 import { VoiceButton } from './VoiceButton';
+
+// Global type declaration for Botpress Webchat
+declare global {
+  interface Window {
+    botpressWebChat?: {
+      sendText: (text: string) => void;
+      onEvent: (callback: (event: any) => void, eventType: string) => void;
+    };
+  }
+}
 
 interface VoiceChatProps {
   language: string;
@@ -13,19 +23,48 @@ interface VoiceChatProps {
 }
 
 export const VoiceChat: React.FC<VoiceChatProps> = ({ language, onBack, onLoanRequest }) => {
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: '1',
-      text: getTranslation('greeting', language),
-      isUser: false,
-      timestamp: new Date(),
-    }
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { isListening, isSpeaking, isSupported, startListening, speak, stopSpeaking } = useVoice(language);
+
+  // Set up the Botpress event listener once when the component mounts
+  useEffect(() => {
+    // Initial greeting from the AI
+    const initialMessage: ChatMessage = {
+      id: '1',
+      text: getTranslation('greeting', language),
+      isUser: false,
+      timestamp: new Date(),
+    };
+    
+    setMessages([initialMessage]);
+
+    if (window.botpressWebChat) {
+      // Listen for messages from the bot
+      window.botpressWebChat.onEvent((event: any) => {
+        if (event.type === 'message' && event.payload.from === 'bot') {
+          const botResponse = event.payload.text;
+          const botMessage: ChatMessage = {
+            id: (Date.now() + 1).toString(),
+            text: botResponse,
+            isUser: false,
+            timestamp: new Date(),
+          };
+
+          setMessages(prev => [...prev, botMessage]);
+          setIsTyping(false);
+
+          // Speak the bot's response
+          if (isSupported) {
+            speak(botResponse);
+          }
+        }
+      }, 'message');
+    }
+  }, [language, isSupported, speak]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -45,6 +84,19 @@ export const VoiceChat: React.FC<VoiceChatProps> = ({ language, onBack, onLoanRe
       setPlayingMessageId(null);
     }
   };
+
+  const checkForLoanRequest = (text: string) => {
+    const lowerText = text.toLowerCase();
+    const hasLoanKeywords = lowerText.includes('loan') || 
+                           lowerText.includes('apply') || 
+                           text.includes('ऋण') || 
+                           text.includes('आवेदन');
+    
+    if (hasLoanKeywords) {
+      onLoanRequest?.();
+    }
+  };
+
   const handleSendMessage = async (text: string) => {
     if (!text.trim()) return;
 
@@ -53,43 +105,54 @@ export const VoiceChat: React.FC<VoiceChatProps> = ({ language, onBack, onLoanRe
       text: text.trim(),
       isUser: true,
       timestamp: new Date(),
-      sentiment: AIService.analyzeSentiment(text),
     };
 
     setMessages(prev => [...prev, userMessage]);
     setInputText('');
     setIsTyping(true);
 
-    // Generate AI response
-    setTimeout(async () => {
-      const response = await AIService.generateResponse(text, language);      
-      const botMessage: ChatMessage = {
+    // Check if user wants to apply for a loan
+    checkForLoanRequest(text.trim());
+
+    // Send the user's message to the Botpress bot
+    if (window.botpressWebChat) {
+      window.botpressWebChat.sendText(text.trim());
+    } else {
+      console.error('Botpress webchat client is not available.');
+      const errorMessage = language === 'hi' 
+        ? 'क्षमा करें, चैट सहायक उपलब्ध नहीं है।' 
+        : 'Sorry, the chat assistant is not available.';
+      
+      const errorMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
-        text: response,
+        text: errorMessage,
         isUser: false,
         timestamp: new Date(),
       };
 
-      setMessages(prev => [...prev, botMessage]);
+      setMessages(prev => [...prev, errorMsg]);
       setIsTyping(false);
-
-      // Speak the response
-      // Check if user wants to apply for loan
-      if (text.toLowerCase().includes('loan') || text.toLowerCase().includes('apply') || 
-          text.includes('ऋण') || text.includes('आवेदन')) {
-        onLoanRequest?.();
-      }
-
+      
       if (isSupported) {
-        await speak(response);
+        await speak(errorMessage);
       }
-    }, 1000);
+    }
   };
-
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     handleSendMessage(inputText);
+  };
+
+  const handleVoiceInput = async () => {
+    try {
+      const transcript = await startListening();
+      if (transcript) {
+        await handleSendMessage(transcript);
+      }
+    } catch (error) {
+      console.error('Voice input error:', error);
+    }
   };
 
   return (
@@ -199,7 +262,10 @@ export const VoiceChat: React.FC<VoiceChatProps> = ({ language, onBack, onLoanRe
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              placeholder={isListening ? getTranslation('listening', language) : (language === 'hi' ? 'अपना संदेश लिखें...' : 'Type your message...')}
+              placeholder={isListening 
+                ? getTranslation('listening', language) 
+                : (language === 'hi' ? 'अपना संदेश लिखें...' : 'Type your message...')
+              }
               className="w-full px-4 py-3 border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-12"
               disabled={isListening}
             />
@@ -209,14 +275,7 @@ export const VoiceChat: React.FC<VoiceChatProps> = ({ language, onBack, onLoanRe
             <VoiceButton
               isListening={isListening}
               isSpeaking={isSpeaking}
-              onStartListening={async () => {
-                try {
-                  const transcript = await startListening();
-                  handleSendMessage(transcript);
-                } catch (error) {
-                  console.error('Voice input error:', error);
-                }
-              }}
+              onStartListening={handleVoiceInput}
               onStopSpeaking={stopSpeaking}
               size="md"
             />
