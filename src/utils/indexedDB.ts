@@ -20,11 +20,19 @@ class IndexedDBManager {
           if (!db.objectStoreNames.contains(storeName)) {
             const store = db.createObjectStore(storeName, { keyPath: 'id' });
             store.createIndex('userId', 'userId', { unique: false });
+            if (storeName === 'emis') {
+              store.createIndex('loanId', 'loanId', { unique: false });
+            }
           } else {
-            // Ensure index exists on upgrade
-            const store = (db.transaction(storeName, 'versionchange').objectStore(storeName));
-            if (!store.indexNames.contains('userId')) {
-              store.createIndex('userId', 'userId', { unique: false });
+            const transaction = (event.target as IDBOpenDBRequest).transaction;
+            if (transaction) {
+              const store = transaction.objectStore(storeName);
+              if (!store.indexNames.contains('userId')) {
+                store.createIndex('userId', 'userId', { unique: false });
+              }
+              if (storeName === 'emis' && !store.indexNames.contains('loanId')) {
+                store.createIndex('loanId', 'loanId', { unique: false });
+              }
             }
           }
         });
@@ -86,7 +94,9 @@ class IndexedDBManager {
   }
 
   async storeEMIs(userId: string, emis: EMI[]): Promise<void> {
-    return this.storeData('emis', userId, emis);
+    // Add userId to each EMI for indexing
+    const emisWithUserId = emis.map(emi => ({ ...emi, userId }));
+    return this.storeData('emis', userId, emisWithUserId);
   }
 
   async getEMIs(userId: string): Promise<EMI[]> {

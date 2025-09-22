@@ -1,3 +1,5 @@
+import { format } from 'date-fns';
+
 export const translations = {
   en: {
     // Common
@@ -20,6 +22,7 @@ export const translations = {
     payNow: "Pay Now",
     allClear: "All Clear",
     chat: "Chat",
+    processing: "Processing...",
     
     // Language Selection
     selectLanguage: "Select Your Preferred Language",
@@ -44,7 +47,6 @@ export const translations = {
     voiceAssistant: "Bolibot",
     tapToSpeak: "Tap to speak",
     listening: "Listening...",
-    processing: "Processing...",
     speakYourRequest: "Speak your request or question",
     tapMicrophoneToFill: "Tap the microphone icon to fill fields with your voice",
     greeting: "Hello! I'm your loan assistant. How can I help you today?",
@@ -92,6 +94,7 @@ export const translations = {
     nextPayment: "Next Payment",
     loanStatus: "Loan Status",
     emi: "EMI",
+    due: "Due",
     
     // Status
     pending: "Pending",
@@ -102,7 +105,26 @@ export const translations = {
     paid: "Paid",
     unpaid: "Unpaid",
     overdue: "Overdue",
+    under_review: "Under Review",
     fillField: "Please fill out this field.",
+    
+    // EMI Storage Messages
+    emisStoredLocally: "EMI schedules stored locally",
+    emisPendingSync: "EMI data will sync when database permissions are updated",
+    localDataNotice: "Data shown from local storage",
+    syncPending: "Sync Pending",
+    offlineMode: "Offline Mode",
+    dataStoredLocally: "Your EMI data is safely stored locally and will sync automatically when connection is restored.",
+    localStorageInfo: "EMI schedules are temporarily stored in your browser's local storage",
+    
+    // Months (short)
+    jan: "Jan", feb: "Feb", mar: "Mar", apr: "Apr", may: "May", jun: "Jun",
+    jul: "Jul", aug: "Aug", sep: "Sep", oct: "Oct", nov: "Nov", dec: "Dec",
+    
+    // Months (full)
+    january: "January", february: "February", march: "March", april: "April",
+    mayFull: "May", june: "June", july: "July", august: "August",
+    september: "September", october: "October", november: "November", december: "December",
   },
   hi: {
     // Common
@@ -125,6 +147,7 @@ export const translations = {
     payNow: "अभी भुगतान करें",
     allClear: "कोई बकाया नहीं",
     chat: "चैट",
+    processing: "प्रक्रिया में...",
     
     // Language Selection
     selectLanguage: "अपनी पसंदीदा भाषा चुनें",
@@ -149,7 +172,6 @@ export const translations = {
     voiceAssistant: "बोलिबॉट",
     tapToSpeak: "बोलने के लिए टैप करें",
     listening: "सुन रहा है...",
-    processing: "प्रक्रिया में...",
     speakYourRequest: "अपना अनुरोध या प्रश्न बोलें",
     tapMicrophoneToFill: "फील्ड भरने के लिए माइक्रोफोन आइकन पर टैप करें",
     greeting: "नमस्ते! मैं आपका ऋण सहायक हूं। आज मैं आपकी कैसे मदद कर सकता हूं?",
@@ -197,6 +219,7 @@ export const translations = {
     nextPayment: "अगला भुगतान",
     loanStatus: "ऋण स्थिति",
     emi: "ईएमआई",
+    due: "देय",
     
     // Status
     pending: "लंबित",
@@ -207,7 +230,26 @@ export const translations = {
     paid: "भुगतान किया गया",
     unpaid: "अवैतनिक",
     overdue: "अतिदेय",
+    under_review: "समीक्षा में",
     fillField: "कृपया यह स्थान भरें।",
+    
+    // EMI Storage Messages
+    emisStoredLocally: "ईएमआई अनुसूची स्थानीय रूप से संग्रहीत",
+    emisPendingSync: "डेटाबेस अनुमतियां अपडेट होने पर ईएमआई डेटा सिंक होगा",
+    localDataNotice: "स्थानीय भंडारण से डेटा दिखाया गया",
+    syncPending: "सिंक लंबित",
+    offlineMode: "ऑफलाइन मोड",
+    dataStoredLocally: "आपका ईएमआई डेटा सुरक्षित रूप से स्थानीय रूप से संग्रहीत है और कनेक्शन बहाल होने पर स्वचालित रूप से सिंक हो जाएगा।",
+    localStorageInfo: "ईएमआई अनुसूची अस्थायी रूप से आपके ब्राउज़र के स्थानीय भंडारण में संग्रहीत है",
+    
+    // Months (short)
+    jan: "जन", feb: "फर", mar: "मार", apr: "अप्र", may: "मई", jun: "जून",
+    jul: "जुल", aug: "अग", sep: "सित", oct: "अक्ट", nov: "नव", dec: "दिस",
+    
+    // Months (full)
+    january: "जनवरी", february: "फरवरी", march: "मार्च", april: "अप्रैल",
+    mayFull: "मई", june: "जून", july: "जुलाई", august: "अगस्त",
+    september: "सितंबर", october: "अक्टूबर", november: "नवंबर", december: "दिसंबर",
   }
 };
 
@@ -216,4 +258,33 @@ export type TranslationKey = keyof typeof translations.en;
 export const getTranslation = (key: TranslationKey, language: string): string => {
   const lang = translations[language as keyof typeof translations];
   return (lang && lang[key]) ? lang[key] : translations.en[key];
+};
+
+// Add function to format date based on language
+export const formatDate = (date: Date, language: string, formatStr: string = 'MMM dd'): string => {
+  if (language === 'hi') {
+    const shortMonthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+    const fullMonthNames = ['january', 'february', 'march', 'april', 'mayFull', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
+    const day = date.getDate();
+    const year = date.getFullYear();
+    
+    if (formatStr === 'MMM dd') {
+      const month = shortMonthNames[date.getMonth()];
+      return `${getTranslation(month as any, language)} ${day}`;
+    }
+    if (formatStr === 'MMM dd, yyyy') {
+      const month = shortMonthNames[date.getMonth()];
+      return `${getTranslation(month as any, language)} ${day}, ${year}`;
+    }
+    if (formatStr === 'MMMM dd, yyyy' || formatStr === 'MMMMM dd') {
+      const month = fullMonthNames[date.getMonth()];
+      if (formatStr === 'MMMMM dd') {
+        return `${getTranslation(month as any, language)} ${day}`;
+      }
+      return `${getTranslation(month as any, language)} ${day}, ${year}`;
+    }
+  }
+  
+  // Fallback to English formatting
+  return format(date, formatStr);
 };
