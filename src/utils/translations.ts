@@ -128,7 +128,7 @@ export const translations = {
   },
   hi: {
     // Common
-    welcome: "बोलीसेवा में आपका स्वागत है",
+    welcome: "बोलीसेवा",
     voiceFirstAssistant: "भारत का आवाज-प्रथम ऋण सहायक",
     continue: "जारी रखें",
     back: "वापस",
