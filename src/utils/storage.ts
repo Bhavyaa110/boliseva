@@ -1,10 +1,11 @@
+
 export class LocalStorage {
   static get<T>(key: string): T | null {
     try {
       const item = localStorage.getItem(key);
       return item ? JSON.parse(item) : null;
     } catch (error) {
-      console.error('Error reading from localStorage:', error);
+      console.error('localStorage get error:', error);
       return null;
     }
   }
@@ -13,7 +14,7 @@ export class LocalStorage {
     try {
       localStorage.setItem(key, JSON.stringify(value));
     } catch (error) {
-      console.error('Error writing to localStorage:', error);
+      console.error('localStorage set error:', error);
     }
   }
 
@@ -21,7 +22,7 @@ export class LocalStorage {
     try {
       localStorage.removeItem(key);
     } catch (error) {
-      console.error('Error removing from localStorage:', error);
+      console.error('localStorage remove error:', error);
     }
   }
 
@@ -29,13 +30,14 @@ export class LocalStorage {
     try {
       localStorage.clear();
     } catch (error) {
-      console.error('Error clearing localStorage:', error);
+      console.error('localStorage clear error:', error);
     }
   }
 }
 
+
 export class OfflineQueue {
-  private static QUEUE_KEY = 'boliseva_offline_queue';
+  private static readonly QUEUE_KEY = 'boliseva_offline_queue';
 
   static addToQueue(action: any): void {
     const queue = this.getQueue();
@@ -53,21 +55,18 @@ export class OfflineQueue {
 
   static async processQueue(): Promise<void> {
     const queue = this.getQueue();
-    if (queue.length === 0) return;
+    if (!queue.length) return;
 
-    // Import LoanService dynamically to avoid circular imports
     const { LoanService } = await import('../services/loanService');
 
-    // Process each queued action
     for (const action of queue) {
       try {
         if (action.type === 'submitLoan') {
           const result = await LoanService.submitApplication(action.data);
-          if (!result.success) {
-            console.error('Failed to submit loan offline:', result.error);
-            // Optionally, keep in queue or handle failure
-          } else {
+          if (result.success) {
             console.log('Loan submitted successfully from offline queue:', result.loanId);
+          } else {
+            console.error('Failed to submit loan offline:', result.error);
           }
         }
         // Add more action types as needed
@@ -75,7 +74,6 @@ export class OfflineQueue {
         console.error('Error processing offline action:', error);
       }
     }
-
     this.clearQueue();
   }
 }

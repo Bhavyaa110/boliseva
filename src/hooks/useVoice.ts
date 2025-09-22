@@ -9,10 +9,7 @@ export const useVoice = (language: string) => {
 
   useEffect(() => {
     setIsSupported(voiceService.isSupported());
-    // Map app language to correct speech recognition language code
-    let langCode = 'en-IN';
-    if (language === 'hi') langCode = 'hi-IN';
-    voiceService.setLanguage(langCode);
+    voiceService.setLanguage(language === 'hi' ? 'hi-IN' : 'en-IN');
   }, [language]);
 
   const startListening = useCallback(async (): Promise<string> => {
@@ -31,12 +28,9 @@ export const useVoice = (language: string) => {
 
   const speak = useCallback(async (text: string): Promise<void> => {
     if (!isSupported) return;
-    // Map app language to correct speech synthesis language code
-    let langCode = 'en-IN';
-    if (language === 'hi') langCode = 'hi-IN';
     setIsSpeaking(true);
     try {
-      await voiceService.speak(text, langCode);
+      await voiceService.speak(text, language === 'hi' ? 'hi-IN' : 'en-IN');
     } finally {
       setIsSpeaking(false);
     }

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowLeft, User, Calendar, CreditCard, Building, Phone } from 'lucide-react';
-import { getTranslation } from '../utils/translations';
+import { getTranslation, TranslationKey } from '../utils/translations';
 import { VoiceButton } from './VoiceButton';
 import { useVoice } from '../hooks/useVoice';
 import { AuthService } from '../services/authService';
@@ -19,6 +19,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ language, onBack, onSign
     ifscCode: '',
     phoneNo: '',
   });
+  const t = React.useCallback((key: TranslationKey) => getTranslation(key, language), [language]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const { isListening, isSpeaking, isSupported, startListening, speak, stopSpeaking } = useVoice(language);
@@ -113,13 +114,13 @@ const handleSubmit = async (e: React.FormEvent) => {
             className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            {getTranslation('back', language)}
+            {t('back')}
           </button>
         </div>
 
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-blue-900 mb-2">
-            {getTranslation('createAccount', language)}
+            {t('createAccount')}
           </h1>
           <p className="text-gray-600">
             {language === 'hi'
@@ -328,7 +329,7 @@ const handleSubmit = async (e: React.FormEvent) => {
             {isSubmitting ? (
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto"></div>
             ) : (
-              getTranslation('createAccount', language)
+              t('createAccount')
             )}
           </button>
         </form>
@@ -337,7 +338,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         {isSupported && (
           <div className="mt-6 p-4 bg-blue-50 rounded-lg">
             <p className="text-sm text-blue-800 text-center">
-              🎤 {getTranslation('speakYourRequest', language)}
+              🎤 {t('speakYourRequest')}
             </p>
           </div>
         )}

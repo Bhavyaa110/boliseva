@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Shield, ArrowLeft } from 'lucide-react';
-import { getTranslation } from '../utils/translations';
+import { getTranslation, TranslationKey } from '../utils/translations';
 
 interface OTPVerificationProps {
   language: string;
@@ -22,6 +22,7 @@ export const OTPVerification: React.FC<OTPVerificationProps> = ({
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [timer, setTimer] = useState(60);
   const [isTimerRunning, setIsTimerRunning] = useState(true);
+  const t = React.useCallback((key: TranslationKey) => getTranslation(key, language), [language]);
 
   useEffect(() => {
     if (!isTimerRunning) {
@@ -90,7 +91,7 @@ export const OTPVerification: React.FC<OTPVerificationProps> = ({
           className="flex items-center text-gray-600 hover:text-gray-900 mb-6 transition-colors"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          {getTranslation('back', language)}
+          {t('back')}
         </button>
 
         <div className="text-center mb-8">
@@ -98,10 +99,10 @@ export const OTPVerification: React.FC<OTPVerificationProps> = ({
             <Shield className="w-8 h-8 text-green-600" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            {getTranslation('enterOtp', language)}
+            {t('enterOtp')}
           </h1>
           <p className="text-gray-600 text-sm">
-            {getTranslation('otpSent', language)}
+            {t('otpSent')}
           </p>
           <p className="text-blue-600 font-medium mt-1">+91 {phoneNumber}</p>
         </div>
@@ -131,10 +132,10 @@ export const OTPVerification: React.FC<OTPVerificationProps> = ({
               </p>
             ) : (
               <button
-                onClick={handleResendOtp} // Add this line to call the function
+                onClick={handleResendOtp}
                 className="text-blue-600 hover:text-blue-700 text-sm font-medium"
               >
-                {language === 'hi' ? 'ओ.टी.पी पुनः भेजें' : 'Resend OTP'}
+                {t('sendOtp')}
               </button>
             )}
             {rateLimitError && (
@@ -151,7 +152,7 @@ export const OTPVerification: React.FC<OTPVerificationProps> = ({
             {isLoading ? (
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto"></div>
             ) : (
-              getTranslation('verify', language)
+              t('verify')
             )}
           </button>
         </div>

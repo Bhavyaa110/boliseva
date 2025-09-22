@@ -1,7 +1,7 @@
 export const translations = {
   en: {
     // Common
-    welcome: "Welcome to BoliSeva",
+    welcome: "BoliSeva",
     voiceFirstAssistant: "India's Voice-First Loan Assistant",
     continue: "Continue",
     back: "Back",
@@ -214,6 +214,6 @@ export const translations = {
 export type TranslationKey = keyof typeof translations.en;
 
 export const getTranslation = (key: TranslationKey, language: string): string => {
-  const lang = language as keyof typeof translations;
-  return translations[lang]?.[key] || translations.en[key];
+  const lang = translations[language as keyof typeof translations];
+  return (lang && lang[key]) ? lang[key] : translations.en[key];
 };

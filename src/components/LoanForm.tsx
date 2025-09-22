@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Calculator, CreditCard, DollarSign, Briefcase, Target, IndianRupee } from 'lucide-react';
-import { getTranslation } from '../utils/translations';
+import { getTranslation, TranslationKey } from '../utils/translations';
 import { VoiceButton } from './VoiceButton';
 import { useVoice } from '../hooks/useVoice';
 import { LoanService } from '../services/loanService';
@@ -34,6 +34,7 @@ const LoanForm: React.FC<LoanFormProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const { isListening, isSpeaking, isSupported, startListening, speak, stopSpeaking } = useVoice(language);
+  const t = React.useCallback((key: TranslationKey) => getTranslation(key, language), [language]);
 
   const handleVoiceInput = async (field: keyof typeof formData) => {
     try {
@@ -217,17 +218,17 @@ const LoanForm: React.FC<LoanFormProps> = ({
             className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            {getTranslation('back', language)}
+            {t('back')}
           </button>
           <div className="text-sm text-gray-500">
-            {getTranslation('step', language)} {currentStep} {getTranslation('of', language)} 3
+            {t('step')} {currentStep} {t('of')} 3
           </div>
         </div>
 
         <div className="text-center mb-8">
           <CreditCard className="w-12 h-12 text-blue-600 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            {getTranslation('applyForLoan', language)}
+            {t('applyForLoan')}
           </h2>
           <p className="text-gray-600">
             {language === 'hi'
@@ -248,7 +249,7 @@ const LoanForm: React.FC<LoanFormProps> = ({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">
                 <Target className="w-4 h-4 inline mr-2" />
-                {getTranslation('loanType', language)}
+                {t('loanType')}
               </label>
               <div className="grid grid-cols-2 gap-3">
                 {LOAN_TYPES.map((type) => (
@@ -262,7 +263,7 @@ const LoanForm: React.FC<LoanFormProps> = ({
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
-                    <div className="font-medium">{getTranslation(type.id as 'personal' | 'business' | 'agriculture' | 'education', language)} {getTranslation('loan', language)}</div>
+                    <div className="font-medium">{t(type.id as TranslationKey)} {t('loan')}</div>
                     <div className="text-xs text-gray-500 mt-1">
                       ₹{type.minAmount.toLocaleString()} - ₹{type.maxAmount.toLocaleString()}
                     </div>
@@ -285,7 +286,7 @@ const LoanForm: React.FC<LoanFormProps> = ({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">
                 <IndianRupee className="w-4 h-4 inline mr-2" />
-                {getTranslation('loanAmount', language)}
+                {t('loanAmount')}
               </label>
               <div className="relative">
                 <input
@@ -369,7 +370,7 @@ const LoanForm: React.FC<LoanFormProps> = ({
               disabled={!formData.type || !formData.amount || !formData.tenure}
               className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             >
-              {getTranslation('next', language)}
+              {t('next')}
             </button>
           </div>
         )}
@@ -381,6 +382,7 @@ const LoanForm: React.FC<LoanFormProps> = ({
               <label className="block text-sm font-medium text-gray-700 mb-3">
                 <Target className="w-4 h-4 inline mr-2" />
                 {getTranslation('loanPurpose', language)}
+                {t('loanPurpose')}
               </label>
               <div className="relative">
                 <textarea
@@ -408,7 +410,7 @@ const LoanForm: React.FC<LoanFormProps> = ({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">
                 <DollarSign className="w-4 h-4 inline mr-2" />
-                {getTranslation('monthlyIncome', language)}
+                {t('monthlyIncome')}
               </label>
               <div className="relative">
                 <input
@@ -436,7 +438,7 @@ const LoanForm: React.FC<LoanFormProps> = ({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">
                 <Briefcase className="w-4 h-4 inline mr-2" />
-                {getTranslation('employment', language)}
+                {t('employment')}
               </label>
               <select
                 value={formData.employment}
@@ -469,14 +471,14 @@ const LoanForm: React.FC<LoanFormProps> = ({
                 onClick={prevStep}
                 className="flex-1 bg-gray-200 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-300 transition-colors"
               >
-                {getTranslation('back', language)}
+                {t('back')}
               </button>
               <button
                 onClick={nextStep}
                 disabled={!formData.purpose || !formData.income || !formData.employment}
                 className="flex-1 bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
               >
-                {getTranslation('next', language)}
+                {t('next')}
               </button>
             </div>
           </div>
@@ -486,17 +488,17 @@ const LoanForm: React.FC<LoanFormProps> = ({
         {currentStep === 3 && (
           <div className="space-y-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              {getTranslation('reviewApplication', language)}
+              {t('reviewApplication')}
             </h3>
 
             <div className="bg-gray-50 rounded-lg p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-600">{getTranslation('loanType', language)}</p>
-                  <p className="font-medium">{getTranslation(formData.type as 'personal' | 'business' | 'agriculture' | 'education', language)} {getTranslation('loan', language)}</p>
+                  <p className="text-sm text-gray-600">{t('loanType')}</p>
+                  <p className="font-medium">{t(formData.type as TranslationKey)} {t('loan')}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">{getTranslation('amount', language)}</p>
+                  <p className="text-sm text-gray-600">{t('amount')}</p>
                   <p className="font-medium">₹{parseInt(formData.amount).toLocaleString()}</p>
                 </div>
                 <div>
@@ -504,11 +506,11 @@ const LoanForm: React.FC<LoanFormProps> = ({
                   <p className="font-medium">{formData.tenure} {language === 'hi' ? 'महीने' : 'months'}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">{getTranslation('monthlyIncome', language)}</p>
+                  <p className="text-sm text-gray-600">{t('monthlyIncome')}</p>
                   <p className="font-medium">₹{parseInt(formData.income).toLocaleString()}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">{getTranslation('purpose', language)}</p>
+                  <p className="text-sm text-gray-600">{t('purpose')}</p>
                   <p className="font-medium">{formData.purpose}</p>
                 </div>
               </div>
@@ -545,7 +547,7 @@ const LoanForm: React.FC<LoanFormProps> = ({
                 onClick={prevStep}
                 className="flex-1 bg-gray-200 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-300 transition-colors"
               >
-                {getTranslation('back', language)}
+                {t('back')}
               </button>
               <button
                 onClick={handleSubmit}
@@ -555,7 +557,7 @@ const LoanForm: React.FC<LoanFormProps> = ({
                 {isSubmitting ? (
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto"></div>
                 ) : (
-                  getTranslation('submit', language)
+                  t('submit')
                 )}
               </button>
             </div>
@@ -566,7 +568,7 @@ const LoanForm: React.FC<LoanFormProps> = ({
         {isSupported && (
           <div className="mt-6 p-4 bg-blue-50 rounded-lg">
             <p className="text-sm text-blue-800 text-center">
-              🎤 {getTranslation('tapMicrophoneToFill', language)}
+          🎤 {t('tapMicrophoneToFill')}
             </p>
           </div>
         )}

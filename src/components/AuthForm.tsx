@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
+import type { TranslationKey } from '../utils/translations';
 import { Phone, ArrowRight, UserPlus } from 'lucide-react';
 import { getTranslation } from '../utils/translations';
 import { VoiceButton } from './VoiceButton';
@@ -18,40 +19,41 @@ export const AuthForm: React.FC<AuthFormProps> = ({ language, onLogin, onSignup,
   const [error, setError] = useState('');
   const { isListening, isSpeaking, isSupported, startListening, speak, stopSpeaking } = useVoice(language);
 
-  const handleVoiceInput = async () => {
+  // Memoized translation function
+  const t = useCallback((key: TranslationKey) => getTranslation(key, language), [language]);
+
+  // Memoize error messages
+  const notRegisteredMsg = useMemo(() =>
+    language === 'hi'
+      ? 'फोन नंबर पंजीकृत नहीं है। कृपया पहले साइन अप करें।'
+      : 'Phone number not registered. Please sign up first.'
+  , [language]);
+
+  const handleVoiceInput = useCallback(async () => {
     try {
       await speak(language === 'hi' ? 'कृपया अपना फोन नंबर बताएं' : 'Please tell me your phone number');
       const transcript = await startListening();
-      
-      // Extract numbers from voice input
       const numbers = transcript.replace(/\D/g, '');
-      if (numbers.length === 10) {
-        setPhoneNo(numbers);
-      } else {
-        setPhoneNo(transcript);
-      }
-      
+      setPhoneNo(numbers.length === 10 ? numbers : transcript);
       await speak(language === 'hi' ? `समझ गया: ${transcript}` : `Got it: ${transcript}`);
     } catch (error) {
       console.error('Voice input error:', error);
     }
-  };
+  }, [language, speak, startListening]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     if (phoneNo.trim().length !== 10) {
-      setError(getTranslation('fillField', language));
+      setError(t('fillField'));
       return;
     }
-
     if (activeTab === 'login') {
-      // Check if user exists before sending OTP
       const userExists = await AuthService.checkUserExists(phoneNo);
       if (!userExists) {
-        setError(language === 'hi' ? 'फोन नंबर पंजीकृत नहीं है। कृपया पहले साइन अप करें।' : 'Phone number not registered. Please sign up first.');
+        setError(notRegisteredMsg);
         if (isSupported) {
-          await speak(language === 'hi' ? 'फोन नंबर पंजीकृत नहीं है। कृपया पहले साइन अप करें।' : 'Phone number not registered. Please sign up first.');
+          await speak(notRegisteredMsg);
         }
         return;
       }
@@ -59,17 +61,15 @@ export const AuthForm: React.FC<AuthFormProps> = ({ language, onLogin, onSignup,
     } else {
       onSignup();
     }
-  };
+  }, [activeTab, phoneNo, t, notRegisteredMsg, isSupported, speak, onLogin, onSignup]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-blue-900 mb-2">  
-            {language === 'hi' ? 'बोलीसेवा' : 'Boliseva'}
-          </h1>
-          <p className="text-gray-600">{getTranslation('voiceFirstAssistant', language)}</p>
+          <h1 className="text-3xl font-bold text-blue-900 mb-2">{t('welcome')}</h1>
+          <p className="text-gray-600">{t('voiceFirstAssistant')}</p>
         </div>
 
         {/* Tab Switcher */}
@@ -84,7 +84,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ language, onLogin, onSignup,
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              {getTranslation(tab, language)}
+              {t(tab as TranslationKey)}
             </button>
           ))}
         </div>
@@ -100,7 +100,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ language, onLogin, onSignup,
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-3">
               <Phone className="w-4 h-4 inline mr-2" />
-              {getTranslation('phoneNumber', language)}
+              {t('phoneNumber')}
             </label>
             <div className="relative">
               <input
@@ -137,12 +137,12 @@ export const AuthForm: React.FC<AuthFormProps> = ({ language, onLogin, onSignup,
               <>
                 {activeTab === 'login' ? (
                   <>
-                    {getTranslation('sendOtp', language)}
+                    {t('sendOtp')}
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </>
                 ) : (
                   <>
-                    {getTranslation('signup', language)}
+                    {t('signup')}
                     <UserPlus className="w-4 h-4 ml-2" />
                   </>
                 )}
@@ -155,7 +155,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ language, onLogin, onSignup,
         {isSupported && (
           <div className="mt-6 p-4 bg-blue-50 rounded-lg">
             <p className="text-sm text-blue-800 text-center">
-              🎤 {getTranslation('speakYourRequest', language)}
+              🎤 {t('speakYourRequest')}
             </p>
           </div>
         )}

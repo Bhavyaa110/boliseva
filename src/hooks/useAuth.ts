@@ -8,34 +8,31 @@ export const useAuth = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const savedUser = LocalStorage.get<User>('boliseva_user');
-    setUser(savedUser);
+    setUser(LocalStorage.get<User>('boliseva_user'));
     setIsLoading(false);
   }, []);
 
-  const sendOTP = async (phoneNo: string): Promise<{ success: boolean; error?: string }> => {
+  const sendOTP = async (phoneNo: string) => {
     setIsLoading(true);
     const result = await AuthService.sendOTP(phoneNo);
     setIsLoading(false);
     return result;
   };
 
-  const signup = async (userData: any): Promise<{ success: boolean; error?: string }> => {
+  const signup = async (userData: any) => {
     setIsLoading(true);
     const result = await AuthService.signup(userData);
     setIsLoading(false);
     return result;
   };
 
-  const verifyOtp = async (phoneNo: string, otp: string): Promise<{ success: boolean; error?: string }> => {
+  const verifyOtp = async (phoneNo: string, otp: string) => {
     setIsLoading(true);
     const result = await AuthService.verifyOTP(phoneNo, otp);
-    
     if (result.success && result.user) {
       setUser(result.user);
       LocalStorage.set('boliseva_user', result.user);
     }
-    
     setIsLoading(false);
     return { success: result.success, error: result.error };
   };

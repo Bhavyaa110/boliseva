@@ -38,19 +38,15 @@ export class VoiceService {
   async startListening(): Promise<string> {
     return new Promise((resolve, reject) => {
       if (!this.recognition) {
-        reject(new Error('Speech recognition not supported'));
-        return;
+        return reject(new Error('Speech recognition not supported'));
       }
-
-      this.recognition.onresult = (event: { results: { transcript: any; }[][]; }) => {
+      this.recognition.onresult = (event: any) => {
         const transcript = event.results[0][0].transcript;
         resolve(transcript);
       };
-
-      this.recognition.onerror = (event: { error: string | undefined; }) => {
+      this.recognition.onerror = (event: any) => {
         reject(new Error(event.error));
       };
-
       this.recognition.start();
     });
   }
@@ -77,8 +73,7 @@ export class VoiceService {
   }
 
   isSupported(): boolean {
-    return 'speechSynthesis' in window && 
-           ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window);
+    return 'speechSynthesis' in window && ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window);
   }
 }
 

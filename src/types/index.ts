@@ -5,7 +5,6 @@ export interface User {
   dob: string;
   accountNumber?: string;
   ifscCode?: string;
-  email?: string;
   preferredLanguage: string;
   isVerified: boolean;
   createdAt: Date;
@@ -20,11 +19,10 @@ export interface LoanApplication {
   income: number;
   employment: string;
   status: 'applied' | 'pending' | 'approved' | 'rejected' | 'disbursed';
-  documents: Document[];
   documentsVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
-  tenure?: number; // months
+  tenure?: number;
   interestRate?: number;
 }
 

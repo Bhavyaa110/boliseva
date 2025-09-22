@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import toast, { Toaster } from 'react-hot-toast';
-import { LanguageSelector } from './components/LanguageSelector';
+import LanguageSelector from './components/LanguageSelector';
 import { AuthForm } from './components/AuthForm';
 import { SignupForm } from './components/SignupForm';
 import { OTPVerification } from './components/OTPVerification';
@@ -13,6 +12,7 @@ import { VoiceChat } from './components/VoiceChat';
 import { useAuth } from './hooks/useAuth';
 import { useVoice } from './hooks/useVoice';
 import { LocalStorage } from './utils/storage';
+import { DocumentService } from './services/documentService';
 
 type AppState =
   | 'language-selection'
@@ -46,28 +46,25 @@ function App() {
     }
   }, [user]);
 
-  const handleLanguageSelect = async (selectedLanguage: string) => {
-    setLanguage(selectedLanguage);
-    updateLanguage(selectedLanguage);
-    LocalStorage.set('boliseva_language', selectedLanguage);
+  const setAppLanguage = (lang: string) => {
+    setLanguage(lang);
+    updateLanguage(lang);
+    LocalStorage.set('boliseva_language', lang);
+  };
 
-    // Welcome message in selected language
+  const handleLanguageSelect = async (selectedLanguage: string) => {
+    setAppLanguage(selectedLanguage);
     if (selectedLanguage === 'hi') {
       await speak('बोलीसेवा में आपका स्वागत है। आइए शुरू करते हैं।');
     } else {
       await speak('Welcome to BoliSeva. Let\'s get started.');
     }
-    // Delay state change to ensure language is set before rendering login
     setTimeout(() => {
       setAppState(user ? 'dashboard' : 'auth');
     }, 400);
   };
 
-  const handleLanguageChange = (newLanguage: string) => {
-    setLanguage(newLanguage);
-    updateLanguage(newLanguage);
-    LocalStorage.set('boliseva_language', newLanguage);
-  };
+  const handleLanguageChange = setAppLanguage;
 
   const handleLogin = async (phoneNo: string) => {
     const result = await sendOTP(phoneNo);
@@ -86,21 +83,21 @@ function App() {
 
   const handleOtpVerification = async (otp: string) => {
     const result = await verifyOtp(phoneNumber, otp);
-
     if (result.success) {
       await speak(language === 'hi' ? 'सफलतापूर्वक लॉगिन हो गए' : 'Successfully logged in');
       if ('user' in result && result.user && (result.user as { name?: string }).name) {
         console.log('User authenticated successfully:', (result.user as { name?: string }).name);
       }
-      setTimeout(() => {
-        setAppState('dashboard');
-      }, 500);
+      setTimeout(() => setAppState('dashboard'), 500);
     } else {
       setAppState('dashboard');
     }
   };
 
-  const handleDocumentVerificationComplete = () => {
+  const handleDocumentVerificationComplete = async (aadhaar: string, pan: string) => {
+    if (user) {
+      await DocumentService.uploadDocuments(user.id, aadhaar, pan);
+    }
     setAppState('loan-form');
   };
 
@@ -170,11 +167,12 @@ function App() {
         />
       )}
 
-      {appState === 'document-verification' && (
+      {appState === 'document-verification' && user && (
         <DocumentVerification
           language={language}
           onBack={() => setAppState('dashboard')}
           onComplete={handleDocumentVerificationComplete}
+          userId={user.id}
         />
       )}
 

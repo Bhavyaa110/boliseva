@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { CheckCircle, XCircle, CreditCard } from 'lucide-react';
 import { LoanApplication } from '../types';
 import { LoanService } from '../services/loanService';
-import { getTranslation } from '../utils/translations';
+import { getTranslation, TranslationKey } from '../utils/translations';
 import { format } from 'date-fns';
 
 interface AdminDashboardProps {
@@ -17,6 +17,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [loans, setLoans] = useState<LoanApplication[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingLoan, setProcessingLoan] = useState<string | null>(null);
+
+  const t = React.useCallback((key: TranslationKey) => getTranslation(key, language), [language]);
 
   useEffect(() => {
     fetchAppliedLoans();
@@ -53,7 +55,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     const result = await LoanService.updateLoanStatus(loanId, 'rejected');
     setProcessingLoan(null);
 
-    if (result.success) {
+    if (result.success){
       await fetchAppliedLoans();
       alert(language === 'hi' ? 'ऋण अस्वीकृत किया गया!' : 'Loan rejected!');
     } else {
@@ -79,7 +81,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">{language === 'hi' ? 'लोड हो रहा है...' : 'Loading...'}</p>
+          <p className="text-gray-600">{t('loading')}</p>
         </div>
       </div>
     );
@@ -133,29 +135,29 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <div className="flex-1">
                       <div className="flex items-center space-x-3 mb-2">
                         <h3 className="text-lg font-semibold text-gray-900">
-                          {getTranslation(loan.type, language)} {getTranslation('loan', language)}
+                          {t(loan.type as TranslationKey)} {t('loan')}
                         </h3>
                         <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(loan.status)}`}>
-                          {loan.status === 'applied' ? getTranslation('waitingApproval', language) : getTranslation(loan.status, language)}
+                          {loan.status === 'applied' ? t('waitingApproval') : t(loan.status as TranslationKey)}
                         </span>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                         <div>
-                          <p className="text-gray-600">{getTranslation('amount', language)}</p>
+                          <p className="text-gray-600">{t('amount')}</p>
                           <p className="font-medium">₹{loan.amount.toLocaleString()}</p>
                         </div>
                         <div>
-                          <p className="text-gray-600">{getTranslation('purpose', language)}</p>
+                          <p className="text-gray-600">{t('purpose')}</p>
                           <p className="font-medium">{loan.purpose}</p>
                         </div>
                         <div>
-                          <p className="text-gray-600">{getTranslation('applied', language)}</p>
+                          <p className="text-gray-600">{t('applied')}</p>
                           <p className="font-medium">{format(loan.createdAt, 'MMM dd, yyyy')}</p>
                         </div>
                       </div>
                       <div className="mt-2 text-sm text-gray-600">
-                        <p><strong>{getTranslation('monthlyIncome', language)}:</strong> ₹{loan.income.toLocaleString()}</p>
-                        <p><strong>{getTranslation('employment', language)}:</strong> {loan.employment}</p>
+                        <p><strong>{t('monthlyIncome')}:</strong> ₹{loan.income.toLocaleString()}</p>
+                        <p><strong>{t('employment')}:</strong> {loan.employment}</p>
                       </div>
                     </div>
                   </div>
@@ -167,7 +169,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <CheckCircle className="w-4 h-4 mr-2" />
-                      {processingLoan === loan.id ? (language === 'hi' ? 'प्रक्रिया...' : 'Processing...') : (language === 'hi' ? 'स्वीकृत करें' : 'Approve')}
+                      {processingLoan === loan.id ? t('processing') : (language === 'hi' ? 'स्वीकृत करें' : 'Approve')}
                     </button>
                     <button
                       onClick={() => handleReject(loan.id)}
@@ -175,7 +177,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       className="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <XCircle className="w-4 h-4 mr-2" />
-                      {processingLoan === loan.id ? (language === 'hi' ? 'प्रक्रिया...' : 'Processing...') : (language === 'hi' ? 'अस्वीकृत करें' : 'Reject')}
+                      {processingLoan === loan.id ? t('processing') : (language === 'hi' ? 'अस्वीकृत करें' : 'Reject')}
                     </button>
                   </div>
                 </div>

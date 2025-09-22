@@ -1,4 +1,5 @@
 import { LoanApplication, EMI } from '../types';
+type StoreType = 'loans' | 'emis';
 
 class IndexedDBManager {
   private dbName = 'BolisevaDB';
@@ -8,21 +9,25 @@ class IndexedDBManager {
   async init(): Promise<void> {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open(this.dbName, this.version);
-
       request.onerror = () => reject(request.error);
       request.onsuccess = () => {
         this.db = request.result;
         resolve();
       };
-
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
-        if (!db.objectStoreNames.contains('loans')) {
-          db.createObjectStore('loans', { keyPath: 'id' });
-        }
-        if (!db.objectStoreNames.contains('emis')) {
-          db.createObjectStore('emis', { keyPath: 'id' });
-        }
+        ['loans', 'emis'].forEach(storeName => {
+          if (!db.objectStoreNames.contains(storeName)) {
+            const store = db.createObjectStore(storeName, { keyPath: 'id' });
+            store.createIndex('userId', 'userId', { unique: false });
+          } else {
+            // Ensure index exists on upgrade
+            const store = (db.transaction(storeName, 'versionchange').objectStore(storeName));
+            if (!store.indexNames.contains('userId')) {
+              store.createIndex('userId', 'userId', { unique: false });
+            }
+          }
+        });
       };
     });
   }
@@ -34,68 +39,58 @@ class IndexedDBManager {
     return this.db!;
   }
 
-  async storeLoans(userId: string, loans: LoanApplication[]): Promise<void> {
+  private async clearUserData(storeType: StoreType, userId: string): Promise<void> {
     const db = await this.ensureDB();
-    const transaction = db.transaction(['loans'], 'readwrite');
-    const store = transaction.objectStore('loans');
+    const transaction = db.transaction([storeType], 'readwrite');
+    const store = transaction.objectStore(storeType);
+    const index = store.index('userId');
+    return new Promise((resolve) => {
+      const request = index.openCursor(IDBKeyRange.only(userId));
+      request.onsuccess = (event) => {
+        const cursor = (event.target as IDBRequest).result;
+        if (cursor) {
+          cursor.delete();
+          cursor.continue();
+        } else {
+          resolve();
+        }
+      };
+    });
+  }
 
-    // Clear old data for this user
-    const index = store.index('userId') || store.createIndex('userId', 'userId');
-    const request = index.openCursor(IDBKeyRange.only(userId));
-    request.onsuccess = (event) => {
-      const cursor = (event.target as IDBRequest).result;
-      if (cursor) {
-        cursor.delete();
-        cursor.continue();
-      }
-    };
+  private async storeData<T>(storeType: StoreType, userId: string, data: T[]): Promise<void> {
+    await this.clearUserData(storeType, userId);
+    const db = await this.ensureDB();
+    const transaction = db.transaction([storeType], 'readwrite');
+    const store = transaction.objectStore(storeType);
+    data.forEach(item => store.put(item));
+  }
 
-    // Store new data
-    loans.forEach(loan => store.put(loan));
+  private async getData<T>(storeType: StoreType, userId: string): Promise<T[]> {
+    const db = await this.ensureDB();
+    const transaction = db.transaction([storeType], 'readonly');
+    const store = transaction.objectStore(storeType);
+    const index = store.index('userId');
+    return new Promise((resolve) => {
+      const request = index.getAll(userId);
+      request.onsuccess = () => resolve(request.result || []);
+    });
+  }
+
+  async storeLoans(userId: string, loans: LoanApplication[]): Promise<void> {
+    return this.storeData('loans', userId, loans);
   }
 
   async getLoans(userId: string): Promise<LoanApplication[]> {
-    const db = await this.ensureDB();
-    const transaction = db.transaction(['loans'], 'readonly');
-    const store = transaction.objectStore('loans');
-    const index = store.index('userId') || store.createIndex('userId', 'userId');
-
-    return new Promise((resolve) => {
-      const request = index.getAll(userId);
-      request.onsuccess = () => resolve(request.result || []);
-    });
+    return this.getData('loans', userId);
   }
 
   async storeEMIs(userId: string, emis: EMI[]): Promise<void> {
-    const db = await this.ensureDB();
-    const transaction = db.transaction(['emis'], 'readwrite');
-    const store = transaction.objectStore('emis');
-
-    // Clear old data for this user
-    const index = store.index('userId') || store.createIndex('userId', 'userId');
-    const request = index.openCursor(IDBKeyRange.only(userId));
-    request.onsuccess = (event) => {
-      const cursor = (event.target as IDBRequest).result;
-      if (cursor) {
-        cursor.delete();
-        cursor.continue();
-      }
-    };
-
-    // Store new data
-    emis.forEach(emi => store.put(emi));
+    return this.storeData('emis', userId, emis);
   }
 
   async getEMIs(userId: string): Promise<EMI[]> {
-    const db = await this.ensureDB();
-    const transaction = db.transaction(['emis'], 'readonly');
-    const store = transaction.objectStore('emis');
-    const index = store.index('userId') || store.createIndex('userId', 'userId');
-
-    return new Promise((resolve) => {
-      const request = index.getAll(userId);
-      request.onsuccess = () => resolve(request.result || []);
-    });
+    return this.getData('emis', userId);
   }
 }
 

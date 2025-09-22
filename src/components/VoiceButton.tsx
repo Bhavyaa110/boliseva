@@ -38,6 +38,15 @@ export const VoiceButton: React.FC<VoiceButtonProps> = ({
     }
   };
 
+  let Icon;
+  if (isListening) {
+    Icon = <Mic className={`${iconSizes[size]} animate-pulse`} />;
+  } else if (isSpeaking) {
+    Icon = <Volume2 className={iconSizes[size]} />;
+  } else {
+    Icon = <MicOff className={iconSizes[size]} />;
+  }
+
   return (
     <button
       onClick={handleClick}
@@ -54,13 +63,7 @@ export const VoiceButton: React.FC<VoiceButtonProps> = ({
         focus:outline-none focus:ring-4 focus:ring-blue-300
       `}
     >
-      {isListening ? (
-        <Mic className={`${iconSizes[size]} animate-pulse`} />
-      ) : isSpeaking ? (
-        <Volume2 className={iconSizes[size]} />
-      ) : (
-        <MicOff className={iconSizes[size]} />
-      )}
+      {Icon}
     </button>
   );
 };

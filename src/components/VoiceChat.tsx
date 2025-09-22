@@ -1,9 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, VolumeX, ArrowLeft, Play } from 'lucide-react';
 import { ChatMessage } from '../types';
-import { getTranslation } from '../utils/translations';
+import { getTranslation, TranslationKey } from '../utils/translations';
 import { useVoice } from '../hooks/useVoice';
-import { AIService } from '../services/aiService'; // Keeping this for sentiment analysis if needed later
 import { VoiceButton } from './VoiceButton';
 
 // Global type declaration for Botpress Webchat
@@ -29,13 +28,14 @@ export const VoiceChat: React.FC<VoiceChatProps> = ({ language, onBack, onLoanRe
   const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { isListening, isSpeaking, isSupported, startListening, speak, stopSpeaking } = useVoice(language);
+  const t = React.useCallback((key: TranslationKey) => getTranslation(key, language), [language]);
 
   // Set up the Botpress event listener once when the component mounts
   useEffect(() => {
     // Initial greeting from the AI
     const initialMessage: ChatMessage = {
       id: '1',
-      text: getTranslation('greeting', language),
+      text: t('greeting'),
       isUser: false,
       timestamp: new Date(),
     };
@@ -165,14 +165,14 @@ export const VoiceChat: React.FC<VoiceChatProps> = ({ language, onBack, onLoanRe
             className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            {getTranslation('back', language)}
+            {t('back')}
           </button>
           <div>
             <h2 className="text-lg font-semibold text-gray-900">
-              {getTranslation('voiceAssistant', language)}
+              {t('voiceAssistant')}
             </h2>
             <p className="text-sm text-gray-600">
-              {getTranslation('speakYourRequest', language)}
+              {t('speakYourRequest')}
             </p>
           </div>
           {isSpeaking && (
@@ -263,7 +263,7 @@ export const VoiceChat: React.FC<VoiceChatProps> = ({ language, onBack, onLoanRe
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               placeholder={isListening 
-                ? getTranslation('listening', language) 
+                ? t('listening') 
                 : (language === 'hi' ? 'अपना संदेश लिखें...' : 'Type your message...')
               }
               className="w-full px-4 py-3 border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-12"
