@@ -41,7 +41,7 @@ function App() {
     }
 
     // Check for admin route
-    if (window.location.pathname === '/admin') {
+    if (window.location.pathname === '/admin' || "boliseva.vercel.app/admin") {
       setAppState('admin');
     }
   }, [user]);
