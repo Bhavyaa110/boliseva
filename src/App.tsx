@@ -41,9 +41,12 @@ function App() {
     }
 
     // Check for admin route
-    if (window.location.pathname === '/admin' || "boliseva.vercel.app/admin") {
+    if (window.location.pathname === '/admin' &&
+       (window.location.hostname === 'localhost' || window.location.hostname === 'boliseva.vercel.app')
+    ) {
       setAppState('admin');
     }
+
   }, [user]);
 
   const setAppLanguage = (lang: string) => {
